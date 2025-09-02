@@ -1,0 +1,21 @@
+{
+  "name": "smarteats-app",
+  "version": "1.0.0",
+  "description": "SIT725-Group-Project",
+  "license": "ISC",
+  "author": "Mudith Makawitage",
+  "type": "commonjs",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.0",
+    "mongoose": "^7.0.0",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {}
+}
