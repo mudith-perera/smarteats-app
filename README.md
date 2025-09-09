@@ -27,4 +27,4 @@
 
 ## Frontend
 
-Open `frontend/index.html` in a browser.
+Open `http://localhost:5001/` in a browser.
