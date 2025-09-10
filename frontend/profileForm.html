@@ -209,8 +209,8 @@
               <!-- Name -->
               <div class="row">
                 <div>
-                  <label for="name">Name</label>
-                  <input type="text" id="name" name="name" required placeholder="e.g., John Doe" /> 
+                  <label for="name">Profile Name</label>
+                  <input type="text" id="name" name="name" required placeholder="e.g., Target slim" />
                 </div>
               </div>
 
@@ -404,6 +404,12 @@
 
   <!-- Keep your tiny unit placeholder helper from before -->
   <script>
+
+    let token = localStorage.getItem('token');
+    if (!token) {
+      window.location.href = 'login.html';
+    }
+
     (function () {
       const unit = document.getElementById('unitSystem');
       const w = document.getElementById('weight');
@@ -421,7 +427,112 @@
       unit.addEventListener('change', updatePlaceholders);
       updatePlaceholders();
     })();
+
+    $.ajax({
+      url: '/api/users/me/profiles',
+      method: 'GET',
+      headers: { Authorization: 'Bearer ' + token },
+      success: function (res) {
+        const profiles = res.profiles || [];
+        const selectUpdate = document.getElementById('updateProfileSelect');
+        const selectDelete = document.getElementById('deleteProfileSelect');
+
+        // Clear existing options
+        selectUpdate.innerHTML = '<option value="" disabled selected>Select a profile</option>';
+        selectDelete.innerHTML = '<option value="" disabled selected>Select a profile</option>';
+
+        profiles.forEach(p => {
+          const option = document.createElement('option');
+          option.value = p._id;
+          option.textContent = p.name || `Profile (${p._id})`;
+          selectUpdate.appendChild(option.cloneNode(true));
+          selectDelete.appendChild(option.cloneNode(true));
+        });
+
+        if (profiles.length === 0) {
+          const noOption = document.createElement('option');
+          noOption.value = '';
+          noOption.textContent = 'No profiles available';
+          selectUpdate.appendChild(noOption.cloneNode(true));
+          selectDelete.appendChild(noOption.cloneNode(true));
+        }
+      },
+      error: function () {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to load profiles. Please try again later.'
+        });
+      }
+    });
+
   </script>
+
+  <script>
+    // Delete profile (keeps Delete tab active + prevents page reload)
+    (function () {
+      const deleteForm = document.getElementById('deleteProfileForm');
+      const deleteSelect = document.getElementById('deleteProfileSelect');
+      const tabDelete = document.getElementById('tab-delete');
+
+      if (!deleteForm) return;
+
+      deleteForm.addEventListener('submit', function (e) {
+        e.preventDefault();                       // stop full page submit
+        if (tabDelete) tabDelete.checked = true;  // keep Delete tab visible
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Not logged in',
+            text: 'Please log in to delete your profile.',
+            confirmButtonColor: '#3085d6'
+          }).then(() => {
+            window.location.href = 'login.html';
+          });
+          return;
+        }
+
+        const profileId = deleteSelect?.value;
+        if (!profileId) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'No profile selected',
+            text: 'Please select a profile to delete.',
+            confirmButtonColor: '#3085d6'
+          });
+          return;
+        }
+
+        $.ajax({
+          url: '/api/users/me/delete-profile/' + profileId,
+          method: 'DELETE',
+          headers: { Authorization: 'Bearer ' + token },
+          success: function (data) {
+            if (tabDelete) tabDelete.checked = true; // keep tab after alert
+            Swal.fire({
+              icon: 'success',
+              title: 'Profile deleted successfully',
+              text: data?.message || 'The profile has been deleted.'
+            }).then(() => {
+              // Redirect or, if you prefer to stay, you can instead remove the option from the selects
+              window.location.href = 'dashboard.html';
+            });
+          },
+          error: function (xhr) {
+            if (tabDelete) tabDelete.checked = true;
+            Swal.fire({
+              icon: 'error',
+              title: 'Profile deletion failed',
+              text: xhr.responseJSON?.message || 'Something went wrong'
+            });
+          },
+        });
+      });
+    })();
+  </script>
+
 </body>
 
 </html>

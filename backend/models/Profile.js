@@ -12,6 +12,7 @@ const ProfileSchema = new mongoose.Schema({
     dietaryPreferences: [{ type: String, enum: DietTag }],
     goal: { type: String, enum: GoalType, default: 'maintain' },
     unitSystem: { type: String, enum: ['metric', 'imperial'], default: 'metric' },
+    isActive: { type: Boolean, default: true }
 });
 
 module.exports = mongoose.model('Profile', ProfileSchema);

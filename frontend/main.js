@@ -113,7 +113,7 @@ document.getElementById('profileForm')?.addEventListener('submit', async (e) => 
                 title: 'Profile created successfully',
                 text: res.message
             }).then(() => {
-                window.location.href = 'index.html';
+                window.location.href = 'dashboard.html';
             });
         },
         error: function (xhr) {
@@ -127,6 +127,7 @@ document.getElementById('profileForm')?.addEventListener('submit', async (e) => 
 });
 
 
+// Load Dashboard
 function loadDashboard() {
     const token = localStorage.getItem('token');
     if (!token) { location.href = 'login.html'; return; }
@@ -137,8 +138,18 @@ function loadDashboard() {
         headers: { Authorization: 'Bearer ' + token },
         success: function (data) {
             const user = data.user || {};
-            const profile = data.profile || {};
+            const profile = data.profile;
             const bmi = data.bmi || null;
+
+            if (profile == null) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'No active profile',
+                    text: 'Please create a profile to see your dashboard.'
+                }).then(() => {
+                    window.location.href = 'profileForm.html';
+                });
+            }
 
             console.log('Dashboard data:', data);
             // Greeting
