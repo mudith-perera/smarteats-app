@@ -1,16 +1,22 @@
 const jwt = require('jsonwebtoken');
 const { jwtSecret } = require('../config');
 
-const authMiddleware = (req, res, next) => {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
-    if (!token) return res.status(401).json({ message: 'No token, authorization denied' });
+const verifyToken = (req, res, next) => {
+    let token = req.header('Authorization');
+    if (!token) return res.status(401).json({ message: 'Access denied' });
+
+    // handle "Bearer <token>" format
+    if (token.startsWith('Bearer ')) {
+        token = token.slice(7);
+    }
 
     try {
         const decoded = jwt.verify(token, jwtSecret);
-        req.user = decoded;
+        // store both id and role
+        req.user = { id: decoded.userId, username: decoded.userName, role: decoded.role };
         next();
-    } catch (err) {
-        res.status(401).json({ message: 'Token is not valid' });
+    } catch (error) {
+        return res.status(401).json({ message: 'Invalid token' });
     }
 };
 
@@ -21,4 +27,4 @@ const adminMiddleware = (req, res, next) => {
     next();
 };
 
-module.exports = { authMiddleware, adminMiddleware };
+module.exports = { verifyToken, adminMiddleware };

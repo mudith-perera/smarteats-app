@@ -1,11 +1,74 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>SmartEats</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SmartEats</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.min.css">
 </head>
 <body>
-    <h1>Welcome to SmartEats</h1>
-    <a href="register.html">Register</a> | 
-    <a href="login.html">Login</a>
+  <header class="navbar">
+    <div class="navbar-inner">
+      <div class="brand">
+        <span class="brand-badge" aria-hidden="true"></span>
+        <a href="index.html" class="nav-link" style="padding:0;">SmartEats</a>
+      </div>
+      <nav>
+        <button class="menu-toggle" aria-label="Toggle menu" id="menuBtn">☰</button>
+        <ul id="menu">
+          <li id="homeBtn"><a class="nav-link" href="index.html">Home</a></li>
+          <li id="loginBtn"><a class="nav-link" href="login.html">Login</a></li>
+          <li id="registerBtn"><a class="nav-link" href="register.html">Register</a></li>
+          <li id="logoutBtn"><a class="nav-link" href="#" onclick="logout()">Logout</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <h1 class="hero-title">Welcome to SmartEats</h1>
+      <p class="hero-sub">Track your meals, set simple goals, and keep life healthy—without the clutter. A clean, minimal interface with just what you need.</p>
+      <div class="actions">
+        <a href="register.html" class="button accent">Get Started</a>
+        <a href="login.html" class="button primary">I already have an account</a>
+      </div>
+    </section>
+
+    <section class="container" style="padding-top:0">
+      <div class="card">
+        <h2 style="margin-top:0;">Why SmartEats?</h2>
+        <p class="small">Minimal setup, clear feedback, and privacy-first design. Built to help you focus on your goals, not on learning another app.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>© <span id="year"></span> SmartEats</p>
+  </footer>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.all.min.js"></script>
+  <script src="main.js"></script>
+
+  <!-- <script>
+    let authToken = localStorage.getItem('token');
+
+    $.ajax({
+      url: '/api/users',
+      method: 'GET',
+      headers: {
+        Authorization: 'Bearer ' + authToken
+      },
+      success: function (res) {
+        console.log('Users:', res);
+      },
+      error: function (xhr) {
+        console.warn('Error:', xhr.status, xhr.responseJSON?.message);
+        // 401 -> no/invalid token, 403 -> not an admin
+      }
+    });
+  </script> -->
 </body>
 </html>
