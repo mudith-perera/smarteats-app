@@ -137,11 +137,13 @@ $(document).ready(function () {
         $('#registerBtn').hide();
         $('#logoutBtn').show();
         $('#profileBtn').show();
+        $('#dashboardBtn').show();
     } else {
         $('#loginBtn').show();
         $('#registerBtn').show();
         $('#logoutBtn').hide();
         $('#profileBtn').hide();
+        $('#dashboardBtn').hide();
     }
 });
 
