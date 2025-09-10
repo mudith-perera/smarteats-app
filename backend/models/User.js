@@ -11,8 +11,8 @@ const GoalType = ['lose_weight','maintain','gain_muscle'];
 
 const ProfileSchema = new mongoose.Schema({
     age: { type: Number, min: 12, max: 120 },
-    weightKg: { type: Number, min: 20, max: 500 },
-    heightCm: { type: Number, min: 80, max: 250 },
+    weight: { type: Number, min: 20, max: 500 },
+    height: { type: Number, min: 80, max: 250 },
     dietaryPreferences: [{ type: String, enum: DietTag }],
     goal: { type: String, enum: GoalType, default: 'maintain' },
     unitSystem: { type: String, enum: ['metric', 'imperial'], default: 'metric' },
@@ -26,7 +26,7 @@ const UserSchema = new mongoose.Schema({
     password: { type: String, required: true, select: false },
     gender: { type: String, enum: ['male', 'female', 'other'], required: true },
     role: { type: String, enum: ['user', 'admin'], default: 'user' },
-    profile: { type: ProfileSchema, default: {} },
+    profile: { type: ProfileSchema },
     isActive: { type: Boolean, default: true },
     lastLoginAt: { type: Date },
 }, { timestamps: true });

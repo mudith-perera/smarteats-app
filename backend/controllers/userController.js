@@ -31,7 +31,23 @@ exports.loginUser = async (req, res) => {
         if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
         
         const token = jwt.sign({ userId: user._id, userName: user.username, role: user.role }, jwtSecret, { expiresIn: '1h' });
-        res.status(200).json({ token, message: 'Login successful' });
+        const profile = user.profile? user.profile : null;
+        res.status(200).json({ token, message: 'Login successful', profile });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+// Create Profile
+exports.createProfile = async (req, res) => {
+    try {
+        const { age, weight, height, dietaryPreferences, goal, unitSystem } = req.body;
+        const userId = req.user.id;
+
+        const profileData = { age, weight, height, dietaryPreferences, goal, unitSystem };
+        const user = await User.findByIdAndUpdate(userId, { profile: profileData }, { new: true }).select('-password');
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        res.status(200).json({ message: 'Profile created successfully', profile: user.profile });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

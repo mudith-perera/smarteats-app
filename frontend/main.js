@@ -59,7 +59,11 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
                 text: 'Welcome back!',
                 confirmButtonColor: '#3085d6'
             }).then(() => {
-                window.location.href = 'index.html';
+                if (res.profile) {
+                    window.location.href = 'index.html';
+                } else {
+                    window.location.href = 'profileForm.html';
+                }
             });
         },
         error: function (xhr) {
@@ -67,6 +71,55 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
                 icon: 'error',
                 title: 'Login failed',
                 text: xhr.responseJSON?.message,
+            });
+        }
+    });
+});
+
+// Create Profile
+document.getElementById('profileForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem('token');
+    if (!token) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Not logged in',
+            text: 'Please log in to create your profile.',
+        });
+        return;
+    }
+    const age = parseInt($('#age').val());
+    const weight = parseFloat($('#weight').val());
+    const height = parseFloat($('#height').val());
+    const dietaryPreferences = [];
+    $('input[name="dietaryPreferences"]:checked').each(function() {
+        dietaryPreferences.push($(this).val());
+    });
+    const goal = $('#goal').val();
+    const unitSystem = $('#unitSystem').val();
+    const profileData = { age, weight, height, dietaryPreferences, goal, unitSystem };
+    $.ajax({
+        url: '/api/users/createProfile',
+        method: 'POST',
+        contentType: 'application/json',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+        data: JSON.stringify(profileData),
+        success: function (res) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Profile created successfully',
+                text: res.message
+            }).then(() => {
+                window.location.href = 'index.html';
+            });
+        },
+        error: function (xhr) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Profile creation failed',
+                text: xhr.responseJSON?.message || 'Something went wrong'
             });
         }
     });
@@ -83,10 +136,12 @@ $(document).ready(function () {
         $('#loginBtn').hide();
         $('#registerBtn').hide();
         $('#logoutBtn').show();
+        $('#profileBtn').show();
     } else {
         $('#loginBtn').show();
         $('#registerBtn').show();
         $('#logoutBtn').hide();
+        $('#profileBtn').hide();
     }
 });
 
