@@ -4,9 +4,149 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Create Profile</title>
+  <title>Profiles • Create / Update / Delete</title>
+
+  <!-- Base styles -->
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.min.css">
+
+  <!-- Page CSS: tabs + form polish -->
+  <style>
+    /* Tabs container */
+    .tabs {
+      margin: 2rem auto;
+      max-width: 960px;
+    }
+
+    /* Hide native radios */
+    .tabs [type="radio"] {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Tab labels row */
+    .tab-labels {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: .5rem;
+      margin-bottom: .75rem;
+    }
+
+    .tab-label {
+      display: block;
+      text-align: center;
+      padding: .75rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #0e1420;
+      cursor: pointer;
+      user-select: none;
+      font-weight: 600;
+    }
+
+    .tab-label:hover {
+      border-color: #2a3a52;
+    }
+
+    /* Active tabs (using :checked + sibling selector) */
+    #tab-create:checked~.tab-labels label[for="tab-create"],
+    #tab-update:checked~.tab-labels label[for="tab-update"],
+    #tab-delete:checked~.tab-labels label[for="tab-delete"] {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--focus);
+    }
+
+    /* Tab panels */
+    .tab-panels {
+      position: relative;
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    #tab-create:checked~.tab-panels #panel-create,
+    #tab-update:checked~.tab-panels #panel-update,
+    #tab-delete:checked~.tab-panels #panel-delete {
+      display: block;
+    }
+
+    /* Cards sizing */
+    .panel-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1rem;
+    }
+
+    /* Form layout enhancements */
+    form {
+      gap: 1.25rem;
+    }
+
+    .row {
+      display: grid;
+      gap: 1rem;
+    }
+
+    @media (min-width: 560px) {
+      .row.two {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    fieldset {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      background: #0e1420;
+    }
+
+    legend {
+      font-weight: 600;
+      padding: 0 .5rem;
+    }
+
+    .checkbox-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: .5rem 1rem;
+      margin-top: .5rem;
+    }
+
+    .checkbox-grid label {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      font-size: .95rem;
+      color: var(--text);
+    }
+
+    input[type="checkbox"] {
+      accent-color: var(--accent);
+      width: 18px;
+      height: 18px;
+    }
+
+    .help {
+      font-size: .8rem;
+      color: var(--muted);
+      margin-top: .25rem;
+      display: block;
+    }
+
+    /* Select lists in Update/Delete panels */
+    .select-block {
+      display: grid;
+      gap: .5rem;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: .9rem;
+    }
+  </style>
 </head>
 
 <body>
@@ -31,75 +171,225 @@
   </header>
 
   <main class="container">
-    <div class="card" style="max-width:560px; margin: 2rem auto;">
-      <h2 style="margin-top:0;">Create Profile</h2>
+    <div class="tabs">
+      <!-- Radios -->
+      <input type="radio" name="profile-tabs" id="tab-create" checked>
+      <input type="radio" name="profile-tabs" id="tab-update">
+      <input type="radio" name="profile-tabs" id="tab-delete">
 
-      <!-- PROFILE FORM -->
-      <form id="profileForm" autocomplete="on" novalidate>
-        <!-- Unit System -->
-        <div class="row">
-          <div>
-            <label for="unitSystem">Unit System</label>
-            <select id="unitSystem" name="unitSystem" required>
-              <option value="metric" selected>Metric (kg, cm)</option>
-              <option value="imperial">Imperial (lb, in)</option>
-            </select>
-            <small class="help">Default is metric. Switch if you use lb/in.</small>
-          </div>
-        </div>
+      <!-- Tab headers -->
+      <div class="tab-labels">
+        <label for="tab-create" class="tab-label">Create</label>
+        <label for="tab-update" class="tab-label">Update</label>
+        <label for="tab-delete" class="tab-label">Delete</label>
+      </div>
 
-        <!-- Age -->
-        <div class="row">
-          <div>
-            <label for="age">Age</label>
-            <input type="number" id="age" name="age" min="12" max="120" required placeholder="e.g., 28" />
-            <small class="help">12–120</small>
-          </div>
-        </div>
+      <!-- Tab panels -->
+      <div class="tab-panels">
 
-        <!-- Weight & Height -->
-        <div class="row">
-          <div>
-            <label for="weight">Weight</label>
-            <input type="number" id="weight" name="weight" min="20" max="500" step="0.1" required placeholder="e.g., 62.5" />
-          </div>
-          <div>
-            <label for="height">Height</label>
-            <input type="number" id="height" name="height" min="80" max="250" step="0.1" required placeholder="e.g., 170" />
-          </div>
-        </div>
+        <!-- CREATE -->
+        <section id="panel-create" class="tab-panel">
+          <div class="panel-card" style="max-width: 720px; margin: 0 auto;">
+            <h2 style="margin:0 0 .75rem;">Create Profile</h2>
 
-        <!-- Goal -->
-        <div class="row">
-          <div>
-            <label for="goal">Goal</label>
-            <select id="goal" name="goal" required>
-              <option value="lose_weight">Lose weight</option>
-              <option value="maintain" selected>Maintain</option>
-              <option value="gain_muscle">Gain muscle</option>
-            </select>
-          </div>
-        </div>
+            <!-- Keep your original form & IDs -->
+            <form id="profileForm" autocomplete="on" novalidate>
+              <!-- Unit System -->
+              <div class="row">
+                <div>
+                  <label for="unitSystem">Unit System</label>
+                  <select id="unitSystem" name="unitSystem" required>
+                    <option value="metric" selected>Metric (kg, cm)</option>
+                    <option value="imperial">Imperial (lb, in)</option>
+                  </select>
+                  <small class="help">Default is metric. Switch if you use lb/in.</small>
+                </div>
+              </div>
 
-        <!-- Dietary Preferences -->
-        <fieldset class="row" style="border:0; padding:0;">
-          <legend style="font-weight:600;">Dietary Preferences</legend>
-          <div class="checkbox-grid">
-            <label><input type="checkbox" name="dietaryPreferences" value="vegetarian" id="diet-vegetarian"> Vegetarian</label>
-            <label><input type="checkbox" name="dietaryPreferences" value="vegan" id="diet-vegan"> Vegan</label>
-            <label><input type="checkbox" name="dietaryPreferences" value="gluten_free" id="diet-gluten_free"> Gluten-free</label>
-            <label><input type="checkbox" name="dietaryPreferences" value="dairy_free" id="diet-dairy_free"> Dairy-free</label>
-            <label><input type="checkbox" name="dietaryPreferences" value="nut_free" id="diet-nut_free"> Nut-free</label>
-            <label><input type="checkbox" name="dietaryPreferences" value="halal" id="diet-halal"> Halal</label>
-            <label><input type="checkbox" name="dietaryPreferences" value="kosher" id="diet-kosher"> Kosher</label>
-          </div>
-        </fieldset>
+              <!-- Name -->
+              <div class="row">
+                <div>
+                  <label for="name">Name</label>
+                  <input type="text" id="name" name="name" required placeholder="e.g., John Doe" /> 
+                </div>
+              </div>
 
-        <div class="form-actions">
-          <button class="button accent" type="submit">Save Profile</button>
-        </div>
-      </form>
-      <!-- /PROFILE FORM -->
+              <!-- Age -->
+              <div class="row">
+                <div>
+                  <label for="age">Age</label>
+                  <input type="number" id="age" name="age" min="12" max="120" required placeholder="e.g., 28" />
+                  <small class="help">12–120</small>
+                </div>
+              </div>
+
+              <!-- Weight & Height -->
+              <div class="row two">
+                <div>
+                  <label for="weight">Weight</label>
+                  <input type="number" id="weight" name="weight" min="20" max="500" step="0.1" required
+                    placeholder="e.g., 62.5" />
+                  <small class="help">kg if metric, lb if imperial.</small>
+                </div>
+                <div>
+                  <label for="height">Height</label>
+                  <input type="number" id="height" name="height" min="80" max="250" step="0.1" required
+                    placeholder="e.g., 170" />
+                  <small class="help">cm if metric, in if imperial.</small>
+                </div>
+              </div>
+
+              <!-- Goal -->
+              <div class="row">
+                <div>
+                  <label for="goal">Goal</label>
+                  <select id="goal" name="goal" required>
+                    <option value="lose_weight">Lose weight</option>
+                    <option value="maintain" selected>Maintain</option>
+                    <option value="gain_muscle">Gain muscle</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Dietary Preferences -->
+              <fieldset class="row">
+                <legend>Dietary Preferences</legend>
+                <div class="checkbox-grid">
+                  <label><input type="checkbox" name="dietaryPreferences" value="vegetarian" id="diet-vegetarian">
+                    Vegetarian</label>
+                  <label><input type="checkbox" name="dietaryPreferences" value="vegan" id="diet-vegan"> Vegan</label>
+                  <label><input type="checkbox" name="dietaryPreferences" value="gluten_free" id="diet-gluten_free">
+                    Gluten-free</label>
+                  <label><input type="checkbox" name="dietaryPreferences" value="dairy_free" id="diet-dairy_free">
+                    Dairy-free</label>
+                  <label><input type="checkbox" name="dietaryPreferences" value="nut_free" id="diet-nut_free">
+                    Nut-free</label>
+                  <label><input type="checkbox" name="dietaryPreferences" value="halal" id="diet-halal"> Halal</label>
+                  <label><input type="checkbox" name="dietaryPreferences" value="kosher" id="diet-kosher">
+                    Kosher</label>
+                </div>
+              </fieldset>
+
+              <div class="form-actions">
+                <button class="button accent" type="submit">Save Profile</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- UPDATE -->
+        <section id="panel-update" class="tab-panel">
+          <div class="panel-card" style="max-width: 720px; margin: 0 auto;">
+            <h2 style="margin:0 0 .75rem;">Update Profile</h2>
+
+            <form id="updateProfileForm" autocomplete="on" novalidate>
+              <!-- Select profile to update -->
+              <div class="row">
+                <div class="select-block">
+                  <label for="updateProfileSelect">Choose a profile</label>
+                  <select id="updateProfileSelect" name="profileId" required>
+                    <!-- To be populated via JS -->
+                    <option value="" disabled selected>Loading profiles…</option>
+                  </select>
+                  <span class="hint">The selected profile will be loaded for editing.</span>
+                </div>
+              </div>
+
+              <!-- Editable fields -->
+              <div class="row">
+                <div>
+                  <label for="updateUnitSystem">Unit System</label>
+                  <select id="updateUnitSystem" name="unitSystem">
+                    <option value="metric">Metric (kg, cm)</option>
+                    <option value="imperial">Imperial (lb, in)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="row">
+                <div>
+                  <label for="updateAge">Age</label>
+                  <input type="number" id="updateAge" name="age" min="12" max="120" placeholder="e.g., 28" />
+                </div>
+              </div>
+
+              <div class="row two">
+                <div>
+                  <label for="updateWeight">Weight</label>
+                  <input type="number" id="updateWeight" name="weight" min="20" max="500" step="0.1"
+                    placeholder="e.g., 62.5" />
+                </div>
+                <div>
+                  <label for="updateHeight">Height</label>
+                  <input type="number" id="updateHeight" name="height" min="80" max="250" step="0.1"
+                    placeholder="e.g., 170" />
+                </div>
+              </div>
+
+              <div class="row">
+                <div>
+                  <label for="updateGoal">Goal</label>
+                  <select id="updateGoal" name="goal">
+                    <option value="lose_weight">Lose weight</option>
+                    <option value="maintain">Maintain</option>
+                    <option value="gain_muscle">Gain muscle</option>
+                  </select>
+                </div>
+              </div>
+
+              <fieldset class="row">
+                <legend>Dietary Preferences</legend>
+                <div class="checkbox-grid">
+                  <label><input type="checkbox" name="dietaryPreferences" value="vegetarian" id="upd-diet-vegetarian">
+                    Vegetarian</label>
+                  <label><input type="checkbox" name="dietaryPreferences" value="vegan" id="upd-diet-vegan">
+                    Vegan</label>
+                  <label><input type="checkbox" name="dietaryPreferences" value="gluten_free" id="upd-diet-gluten_free">
+                    Gluten-free</label>
+                  <label><input type="checkbox" name="dietaryPreferences" value="dairy_free" id="upd-diet-dairy_free">
+                    Dairy-free</label>
+                  <label><input type="checkbox" name="dietaryPreferences" value="nut_free" id="upd-diet-nut_free">
+                    Nut-free</label>
+                  <label><input type="checkbox" name="dietaryPreferences" value="halal" id="upd-diet-halal">
+                    Halal</label>
+                  <label><input type="checkbox" name="dietaryPreferences" value="kosher" id="upd-diet-kosher">
+                    Kosher</label>
+                </div>
+              </fieldset>
+
+              <div class="form-actions">
+                <button class="button accent" type="submit">Update Profile</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- DELETE -->
+        <section id="panel-delete" class="tab-panel">
+          <div class="panel-card" style="max-width: 720px; margin: 0 auto;">
+            <h2 style="margin:0 0 .75rem;">Delete Profile</h2>
+
+            <form id="deleteProfileForm" novalidate>
+              <div class="row">
+                <div class="select-block">
+                  <label for="deleteProfileSelect">Choose a profile</label>
+                  <select id="deleteProfileSelect" name="profileId" required>
+                    <!-- To be populated via JS -->
+                    <option value="" disabled selected>Loading profiles…</option>
+                  </select>
+                  <span class="hint">This will permanently delete the selected profile.</span>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button class="button" type="submit" style="border-color:#a33; color:#fff; background:#a33;">Delete
+                  Profile</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+      </div>
     </div>
   </main>
 
@@ -107,12 +397,12 @@
     <p>© <span id="year"></span> SmartEats</p>
   </footer>
 
-  <!-- Scripts (kept) -->
+  <!-- Shared scripts (no new logic for tabs; they’re CSS-only) -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.all.min.js"></script>
   <script src="main.js"></script>
 
-  <!-- Optional: tiny helper to hint units in placeholders (no backend changes needed) -->
+  <!-- Keep your tiny unit placeholder helper from before -->
   <script>
     (function () {
       const unit = document.getElementById('unitSystem');

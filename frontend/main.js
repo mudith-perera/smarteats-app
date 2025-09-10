@@ -88,6 +88,7 @@ document.getElementById('profileForm')?.addEventListener('submit', async (e) => 
         });
         return;
     }
+    const name = $('#name').val();
     const age = parseInt($('#age').val());
     const weight = parseFloat($('#weight').val());
     const height = parseFloat($('#height').val());
@@ -97,7 +98,7 @@ document.getElementById('profileForm')?.addEventListener('submit', async (e) => 
     });
     const goal = $('#goal').val();
     const unitSystem = $('#unitSystem').val();
-    const profileData = { age, weight, height, dietaryPreferences, goal, unitSystem };
+    const profileData = { name, age, weight, height, dietaryPreferences, goal, unitSystem };
     $.ajax({
         url: '/api/users/createProfile',
         method: 'POST',

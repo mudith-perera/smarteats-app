@@ -4,6 +4,7 @@ const DietTag = ['vegetarian','vegan','gluten_free','dairy_free','nut_free','hal
 const GoalType = ['lose_weight','maintain','gain_muscle'];
 
 const ProfileSchema = new mongoose.Schema({
+    name: { type: String, required: true },
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     age: { type: Number, min: 12, max: 120 },
     weight: { type: Number, min: 20, max: 500 },

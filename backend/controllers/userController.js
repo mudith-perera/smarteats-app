@@ -43,11 +43,12 @@ exports.loginUser = async (req, res) => {
 exports.createProfile = async (req, res) => {
     try {
         const userId = req.user.id;
-        const { age, weight, height, dietaryPreferences, goal, unitSystem } = req.body;
+        const { name, age, weight, height, dietaryPreferences, goal, unitSystem } = req.body;
 
         // 1) Create a Profile with the required `user` field
         const profile = await Profile.create({
             user: userId,
+            name,
             age,
             weight,
             height,
