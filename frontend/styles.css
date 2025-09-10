@@ -1,0 +1,233 @@
+
+:root {
+  --bg: #0b0f14;
+  --panel: #121822;
+  --text: #e6edf3;
+  --muted: #9fb0c0;
+  --accent: #6ee7b7;
+  --accent-2: #93c5fd;
+  --border: #1f2937;
+  --focus: #2563eb33;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  color: var(--text);
+  background: radial-gradient(1200px 800px at 10% -10%, #162033 0%, #0b0f14 60%) no-repeat fixed;
+  line-height: 1.5;
+}
+
+a { color: var(--accent-2); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Navbar */
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: rgba(11,15,20,0.85);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+
+.navbar-inner {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-weight: 700;
+  letter-spacing: .3px;
+}
+
+.brand-badge {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  display: inline-block;
+}
+
+nav ul {
+  list-style: none;
+  display: flex;
+  gap: 1rem;
+  margin: 0; padding: 0;
+}
+
+.nav-link {
+  padding: .5rem .75rem;
+  border-radius: 10px;
+  transition: background .2s ease;
+}
+.nav-link:hover { background: #ffffff0a; text-decoration: none; }
+
+/* Mobile Menu */
+.menu-toggle {
+  display: none;
+  width: 40px; height: 40px;
+  align-items: center; justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: transparent; color: var(--text);
+}
+
+@media (max-width: 720px) {
+  nav ul { display: none; }
+  nav ul.open { 
+    display: grid; 
+    gap: .5rem; 
+    position: absolute; 
+    top: 58px; right: 1rem; 
+    background: var(--panel); 
+    border: 1px solid var(--border); 
+    border-radius: 12px; 
+    padding: .75rem; 
+    width: min(80vw, 280px);
+    box-shadow: 0 10px 30px rgba(0,0,0,.4);
+  }
+  .menu-toggle { display: inline-flex; }
+}
+
+/* Layout */
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.hero {
+  padding: 5rem 1rem 3rem;
+  text-align: center;
+}
+
+h1.hero-title {
+  margin: 0 auto .75rem;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.15;
+  max-width: 18ch;
+  text-shadow: 0 2px 18px rgba(109,188,255,0.15);
+}
+
+.hero-sub {
+  color: var(--muted);
+  max-width: 60ch;
+  margin: 0 auto 2rem;
+}
+
+.actions {
+  display: flex;
+  gap: .75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  padding: .7rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #101726;
+  color: var(--text);
+  cursor: pointer;
+  transition: transform .08s ease, box-shadow .15s ease, background .2s ease;
+  text-decoration: none;
+}
+.button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0,0,0,.25);
+  text-decoration: none;
+}
+.button.primary {
+  background: linear-gradient(135deg, #0f172a, #111827);
+  border-color: #2a3a52;
+}
+.button.accent {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #0b0f14;
+  font-weight: 600;
+}
+
+/* Card / Panel */
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.25rem;
+  box-shadow: 0 10px 30px rgba(0,0,0,.25);
+}
+
+/* Forms */
+form {
+  display: grid;
+  gap: .9rem;
+  margin-top: .5rem;
+}
+
+label {
+  font-size: .95rem;
+  color: var(--muted);
+}
+
+input, select {
+  width: 100%;
+  padding: .7rem .85rem;
+  background: #0e1420;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+input:focus, select:focus {
+  border-color: #2a3a52;
+  box-shadow: 0 0 0 4px var(--focus);
+}
+
+form .row {
+  display: grid;
+  gap: .9rem;
+}
+@media (min-width: 640px) {
+  form .row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.form-actions {
+  display: flex;
+  gap: .75rem;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: .5rem;
+}
+
+.small {
+  font-size: .9rem;
+  color: var(--muted);
+}
+
+/* Footer */
+.footer {
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  text-align: center;
+  padding: 2rem 1rem 3rem;
+  margin-top: 3rem;
+}

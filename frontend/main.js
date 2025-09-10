@@ -1,41 +1,93 @@
 const API_URL = '/api/users';
-let token = '';
 
 // Register
 document.getElementById('registerForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const data = {
-        email: document.getElementById('email').value,
-        password: document.getElementById('password').value,
-        age: document.getElementById('age').value,
-        weight: document.getElementById('weight').value,
-        height: document.getElementById('height').value,
-        preferences: document.getElementById('preferences').value,
-        goals: document.getElementById('goals').value,
+
+    const formData = {
+        username: $('#username').val(),
+        email: $('#email').val(),
+        password: $('#password').val(),
+        gender: $('#gender').val(),
+        firstName: $('#firstName').val(),
+        lastName: $('#lastName').val()
     };
-    const res = await fetch(API_URL + '/register', {
+
+    $.ajax({
+        url: '/api/users/register',
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        contentType: 'application/json',
+        data: JSON.stringify(formData),
+        success: function (res) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Registration successful',
+                text: res.message,
+                confirmButtonColor: '#3085d6'
+            }).then(() => {
+                window.location.href = 'login.html';
+            });
+        },
+        error: function (xhr) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Registration failed',
+                text: xhr.responseJSON?.message || 'Something went wrong'
+            });
+        }
     });
-    alert(await res.text());
 });
 
 // Login
 document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const data = {
-        email: document.getElementById('email').value,
-        password: document.getElementById('password').value
-    };
-    const res = await fetch(API_URL + '/login', {
+    const username = $('#username').val();
+    const password = $('#password').val();
+
+    $.ajax({
+        url: '/api/users/login',
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        contentType: 'application/json',
+        data: JSON.stringify({ username, password }),
+        success: function (res) {
+            token = res.token;
+            localStorage.setItem('token', token);
+    
+            Swal.fire({
+                icon: 'success',
+                title: 'Login successful',
+                text: 'Welcome back!',
+                confirmButtonColor: '#3085d6'
+            }).then(() => {
+                window.location.href = 'index.html';
+            });
+        },
+        error: function (xhr) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Login failed',
+                text: xhr.responseJSON?.message,
+            });
+        }
     });
-    const result = await res.json();
-    token = result.token;
-    alert('Login successful!');
+});
+
+function logout() {
+  localStorage.removeItem('token'); 
+  window.location.href = '/login.html';
+}
+
+$(document).ready(function () {
+    const token = localStorage.getItem('token');
+    if (token) {
+        $('#loginBtn').hide();
+        $('#registerBtn').hide();
+        $('#logoutBtn').show();
+    } else {
+        $('#loginBtn').show();
+        $('#registerBtn').show();
+        $('#logoutBtn').hide();
+    }
 });
 
 // Admin get users
@@ -52,3 +104,22 @@ async function getUsers() {
         list.appendChild(li);
     });
 }
+
+
+// --- UI helpers (vanilla) ---
+(function () {
+    const byId = (id) => document.getElementById(id);
+    const menuBtn = byId('menuBtn');
+    const menu = byId('menu');
+    const yearEl = document.getElementById('year');
+
+    if (menuBtn && menu) {
+        menuBtn.addEventListener('click', () => {
+            menu.classList.toggle('open');
+        });
+    }
+
+    if (yearEl) {
+        yearEl.textContent = new Date().getFullYear();
+    }
+})();

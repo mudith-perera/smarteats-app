@@ -6,12 +6,12 @@ const { jwtSecret } = require('../config');
 // Register
 exports.registerUser = async (req, res) => {
     try {
-        const { email, password, age, weight, height, preferences, goals } = req.body;
-        const existingUser = await User.findOne({ email });
-        if (existingUser) return res.status(400).json({ message: 'User already exists' });
+        const { firstName, lastName, username, email, password, gender } = req.body;
+        const existingUser = await User.findOne({ username });
+        if (existingUser) return res.status(409).json({ message: 'User already exists' });
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const user = new User({ email, password: hashedPassword, age, weight, height, preferences, goals });
+        const user = new User({ firstName, lastName, username, email, password: hashedPassword, gender });
         await user.save();
 
         res.status(201).json({ message: 'User registered successfully' });
@@ -23,15 +23,15 @@ exports.registerUser = async (req, res) => {
 // Login
 exports.loginUser = async (req, res) => {
     try {
-        const { email, password } = req.body;
-        const user = await User.findOne({ email });
-        if (!user) return res.status(400).json({ message: 'Invalid credentials' });
+        const { username, password } = req.body;
+        const user = await User.findOne({ username }).select('+password');
+        if (!user) return res.status(401).json({ message: 'Username not found!' });
 
         const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
-
-        const token = jwt.sign({ id: user._id, role: user.role }, jwtSecret, { expiresIn: '1h' });
-        res.json({ token });
+        if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
+        
+        const token = jwt.sign({ userId: user._id, userName: user.username, role: user.role }, jwtSecret, { expiresIn: '1h' });
+        res.status(200).json({ token, message: 'Login successful' });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -40,6 +40,7 @@ exports.loginUser = async (req, res) => {
 // Get all users (Admin)
 exports.getUsers = async (req, res) => {
     try {
+        console.log(req.user); // { id, role }
         const users = await User.find().select('-password');
         res.json(users);
     } catch (err) {
