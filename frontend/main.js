@@ -60,7 +60,7 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
                 confirmButtonColor: '#3085d6'
             }).then(() => {
                 if (res.profile) {
-                    window.location.href = 'index.html';
+                    window.location.href = 'dashboard.html';
                 } else {
                     window.location.href = 'profileForm.html';
                 }

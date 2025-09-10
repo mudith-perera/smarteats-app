@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SmartEats • Dashboard</title>
+
+    <!-- Base site styles -->
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.min.css" />
+
+    <!-- Page-specific minimal CSS -->
+    <style>
+        /* Layout */
+        .dashboard-grid {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: 1fr;
+        }
+
+        @media (min-width: 900px) {
+            .dashboard-grid {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
+
+        .span-full {
+            grid-column: 1 / -1;
+        }
+
+        /* Metrics */
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: .75rem;
+            margin-top: .75rem;
+        }
+
+        .metric-card {
+            background: #0e1420;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .metric-label {
+            display: block;
+            font-size: .85rem;
+            color: var(--muted);
+        }
+
+        .metric-value {
+            display: block;
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-top: .25rem;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: .25rem .6rem;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: .8rem;
+            color: #0b0f14;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+        }
+
+        /* Profile details as individual cards */
+        .profile-detail-grid {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            margin-top: 1rem;
+        }
+
+        .detail-card {
+            background: #0e1420;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1rem;
+        }
+
+        .detail-title {
+            font-size: .9rem;
+            color: var(--muted);
+            margin: 0 0 .25rem 0;
+        }
+
+        .detail-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <header class="navbar">
+        <div class="navbar-inner">
+            <div class="brand">
+                <span class="brand-badge" aria-hidden="true"></span>
+                <a href="index.html" class="nav-link" style="padding:0;">SmartEats</a>
+            </div>
+            <nav>
+                <button class="menu-toggle" aria-label="Toggle menu" id="menuBtn">☰</button>
+                <ul id="menu">
+                    <li id="homeBtn"><a class="nav-link" href="index.html">Home</a></li>
+                    <li id="profileBtn"><a class="nav-link" href="profileCard.html">Profiles</a></li>
+                    <li id="loginBtn"><a class="nav-link" href="login.html">Login</a></li>
+                    <li id="registerBtn"><a class="nav-link" href="register.html">Register</a></li>
+                    <li id="logoutBtn"><a class="nav-link" href="#" onclick="logout()">Logout</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main -->
+    <main class="container">
+        <div class="dashboard-grid">
+
+            <!-- Greeting + metrics -->
+            <section class="card" id="greeting-card">
+                <h2 id="greeting-title" style="margin:0 0 .4rem 0;">Welcome, User 👋</h2>
+                <p id="greeting-subtitle" class="muted">Here’s your current health overview.</p>
+
+                <div class="metrics">
+                    <div class="metric-card">
+                        <span class="metric-label">Age</span>
+                        <span class="metric-value" id="age-value">–</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-label">BMI</span>
+                        <span class="metric-value" id="bmi-value">–</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-label">Health Status</span>
+                        <span class="metric-value"><span class="status-badge" id="status-value">–</span></span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- (Optional) Right column content space filler: quick links or tips could go here -->
+            <aside class="card" id="quick-card">
+                <h3 style="margin-top:0;">Quick Links</h3>
+                <ul style="list-style:none; padding:0; margin:0; display:grid; gap:.5rem;">
+                    <li><a class="button" href="profileCard.html">Switch Active Profile</a></li>
+                    <li><a class="button" href="profileForm.html">Create / Edit Profile</a></li>
+                    <li><a class="button" href="index.html">Home</a></li>
+                </ul>
+            </aside>
+
+            <!-- Profile details (individual cards) -->
+            <section class="card span-full" id="profile-details-card">
+                <h3 style="margin-top:0;">Profile Details</h3>
+                <div class="profile-detail-grid">
+                    <div class="detail-card">
+                        <p class="detail-title">Goal</p>
+                        <p class="detail-value" id="goal-value">–</p>
+                    </div>
+                    <div class="detail-card">
+                        <p class="detail-title">Unit System</p>
+                        <p class="detail-value" id="unit-value">–</p>
+                    </div>
+                    <div class="detail-card">
+                        <p class="detail-title">Weight</p>
+                        <p class="detail-value" id="weight-value">–</p>
+                    </div>
+                    <div class="detail-card">
+                        <p class="detail-title">Height</p>
+                        <p class="detail-value" id="height-value">–</p>
+                    </div>
+                    <div class="detail-card" style="grid-column: 1 / -1;">
+                        <p class="detail-title">Dietary Preferences</p>
+                        <p class="detail-value" id="diet-value">–</p>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>© <span id="year">2025</span> SmartEats</p>
+    </footer>
+
+    <!-- Shared scripts (no inline logic here; your existing main.js can hook into IDs) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.all.min.js"></script>
+    <script src="main.js"></script>
+</body>
+
+</html>
