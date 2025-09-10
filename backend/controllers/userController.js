@@ -114,38 +114,39 @@ exports.setActiveProfile = async (req, res) => {
     }
 };
 
-// Get all users (Admin)
-exports.getUsers = async (req, res) => {
+// Get Dashboard Info
+exports.getDashboardInfo = async (req, res) => {
     try {
-        console.log(req.user); // { id, role }
-        const users = await User.find().select('-password');
-        res.json(users);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
-};
+        const userId = req.user.id;
+        const user = await User.findById(userId).select('firstName lastName username profile');
+        if (!user) return res.status(404).json({ message: 'User not found' });
 
-// Update user (Admin)
-exports.updateUser = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const updates = req.body;
-        if (updates.password) {
-            updates.password = await bcrypt.hash(updates.password, 10);
+        // Get user's active profile
+        const profile = user.profile ? user.profile : null;
+
+        let bmi = null;
+        if (profile && profile.weight && profile.height) {
+            if (profile.unitSystem === 'metric') {
+                // weight in kg, height in cm
+                const heightInMeters = profile.height / 100;
+                bmi = profile.weight / (heightInMeters * heightInMeters);
+            } else if (profile.unitSystem === 'imperial') {
+                // weight in lbs, height in inches
+                bmi = (profile.weight / (profile.height * profile.height)) * 703;
+            }
+            bmi = Number(bmi.toFixed(2));
         }
-        const user = await User.findByIdAndUpdate(id, updates, { new: true }).select('-password');
-        res.json(user);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
-};
 
-// Delete user (Admin)
-exports.deleteUser = async (req, res) => {
-    try {
-        const { id } = req.params;
-        await User.findByIdAndDelete(id);
-        res.json({ message: 'User deleted successfully' });
+        res.status(200).json({
+            user: {
+                id: user._id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                username: user.username
+            },
+            profile,
+            bmi
+        });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

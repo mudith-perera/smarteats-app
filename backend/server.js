@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 const path = require('path');
 const cors = require('cors');
 const userRoutes = require('./routes/userRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 dotenv.config();
 const app = express();
@@ -24,6 +25,7 @@ app.use(express.json());
 
 // API Routes
 app.use('/api/users', userRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Serve frontend statically (so you can hit http://localhost:5001/)
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
