@@ -6,6 +6,9 @@ const cors = require("cors");
 const userRoutes = require("./routes/userRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const mealPlanRoutes = require("./routes/mealPlanRoutes");
+const mealRoutes = require("./routes/mealRoutes");
+
+
 
 const bcrypt = require("bcryptjs");
 const User = require("./models/User");
@@ -64,6 +67,7 @@ app.use(express.json());
 app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/mealplans", mealPlanRoutes);
+app.use("/api/meals", mealRoutes);
 
 // Serve frontend statically (so you can hit http://localhost:5001/)
 app.use(express.static(path.join(__dirname, "..", "frontend")));
