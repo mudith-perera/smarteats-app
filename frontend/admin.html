@@ -1,18 +1,262 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.min.css">
+    <meta charset="UTF-8" />
+    <title>Admin Dashboard — SmartEats</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Global styles (same as user dashboard) -->
+    <link rel="stylesheet" href="./styles.css" />
+    <!-- Page-scoped polish to match dashboard components -->
+    <style>
+        /* Table styled like cards, using your design tokens */
+        .admin-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.25rem;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: .6rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .toolbar .input {
+            background: var(--panel);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: .6rem .8rem;
+            outline: none;
+            min-width: 260px;
+        }
+
+        .toolbar .button {
+            padding: .6rem .9rem;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: linear-gradient(135deg, #0f172a, #111827);
+            color: var(--text);
+            cursor: pointer;
+        }
+
+        .toolbar .button.accent {
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: #0b0f14;
+            font-weight: 600;
+            border-color: transparent;
+        }
+
+        .toolbar .button.ghost {
+            background: transparent;
+        }
+
+        .table-card {
+            overflow: hidden;
+            padding: 0;
+            /* table header can sit flush with borders */
+        }
+
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
+        }
+
+        table.user-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--panel);
+            color: var(--text);
+        }
+
+        table.user-table thead th {
+            text-align: left;
+            font-weight: 600;
+            color: var(--muted);
+            border-bottom: 1px solid var(--border);
+            padding: .9rem 1rem;
+            position: sticky;
+            top: 0;
+            background: linear-gradient(180deg, #121822, #0e141d);
+            z-index: 1;
+        }
+
+        table.user-table tbody td {
+            border-top: 1px solid var(--border);
+            padding: .85rem 1rem;
+            vertical-align: middle;
+        }
+
+        table.user-table tbody tr:hover {
+            background: #0e141d;
+        }
+
+        .pill {
+            display: inline-block;
+            padding: .15rem .55rem;
+            border-radius: 999px;
+            font-size: 12px;
+            border: 1px solid var(--border);
+            color: var(--text);
+            background: #0f1622;
+        }
+
+        .pill.admin {
+            background: #132030;
+            border-color: #233244;
+        }
+
+        .pill.user {
+            background: #16201a;
+            border-color: #294033;
+        }
+
+        .status-yn {
+            display: inline-block;
+            padding: .2rem .5rem;
+            border-radius: 8px;
+            font-size: 12px;
+            border: 1px solid var(--border);
+            background: #0f1622;
+            color: var(--muted);
+        }
+
+        .row-actions {
+            display: flex;
+            gap: .5rem;
+            align-items: center;
+        }
+
+        .button.sm {
+            padding: .45rem .65rem;
+            font-size: 14px;
+            border-radius: 8px;
+        }
+
+        .button.danger {
+            border-color: #43252a;
+            background: linear-gradient(135deg, #2a1115, #1a0c0e);
+            color: #ffb4c0;
+        }
+
+        .pager {
+            display: flex;
+            gap: .6rem;
+            align-items: center;
+            justify-content: flex-end;
+            color: var(--muted);
+        }
+
+        .notice {
+            margin: .5rem 0 0 0;
+            color: var(--muted);
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
 </head>
 
 <body>
-    <h2>Admin Dashboard</h2>
-    <button onclick="getUsers()">Load Users</button>
-    <ul id="userList"></ul>
+    <!-- Header (same component as dashboard) -->
+    <header class="navbar">
+        <div class="navbar-inner container">
+            <div class="brand">
+                <span class="brand-badge" aria-hidden="true"></span>
+                <a href="index.html" class="nav-link" style="padding:0;">SmartEats</a>
+            </div>
+            <nav>
+                <button class="menu-toggle" aria-label="Toggle menu" id="menuBtn">☰</button>
+                <ul id="menu">
+                    <li id="homeBtn"><a class="nav-link" href="index.html">Home</a></li>
+                    <li id="dashboardBtn"><a class="nav-link" href="dashboard.html">Dashboard</a></li>
+                    <li id="profileBtn"><a class="nav-link" href="profileCard.html">Profiles</a></li>
+                    <li id="loginBtn"><a class="nav-link" href="login.html">Login</a></li>
+                    <li id="registerBtn"><a class="nav-link" href="register.html">Register</a></li>
+                    <li id="logoutBtn"><a class="nav-link" href="#" onclick="logout()">Logout</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main -->
+    <main class="container">
+        <div class="admin-grid">
+            <!-- Top card: title + search -->
+            <section class="card">
+                <h2 style="margin:0 0 .4rem 0;">Admin Dashboard</h2>
+                <p class="muted" style="margin:0 0 1rem 0;">Search, view, and remove users.</p>
+
+                <div id="guard" class="notice hidden"></div>
+
+                <div class="toolbar" style="margin-top:.5rem;">
+                    <input id="search" class="input" type="search" placeholder="Search by name, username, email…" />
+                    <button id="btnSearch" class="button">Search</button>
+                    <button id="btnClear" class="button ghost">Clear</button>
+
+                    <div style="margin-left:auto; display:flex; gap:.6rem;">
+                        <button id="btnLogout" class="button">Log out</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Users table card -->
+            <section class="card table-card">
+                <div class="table-wrap">
+                    <table class="user-table" role="table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Username / Email</th>
+                                <th>Role</th>
+                                <th>Active</th>
+                                <th>Last Login</th>
+                                <th style="width: 160px">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersBody">
+                            <tr>
+                                <td colspan="6" class="muted" style="padding:1rem;">Loading…</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card" style="border-top-left-radius:0;border-top-right-radius:0;border-top:none;">
+                    <div class="pager">
+                        <span id="pageInfo">—</span>
+                        <button id="prevPage" class="button sm">Prev</button>
+                        <button id="nextPage" class="button sm">Next</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>© <span id="year">2025</span> SmartEats</p>
+    </footer>
+
+    <!-- Scripts (match dashboard.html order) -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.all.min.js"></script>
-    <script src="main.js"></script>
+    <script src="./js/main.js"></script>
+    <script src="./js/admin.js"></script>
+    <script>
+        // Small helpers to align look & behaviour
+        function logout() { localStorage.removeItem('token'); location.href = 'index.html'; }
+
+        // Optional: replace role text with a colored pill (works with your existing renderer if you add this)
+        function renderRolePill(role) {
+            const cls = role === 'admin' ? 'pill admin' : 'pill user';
+            return `<span class="${cls}">${role || 'user'}</span>`;
+        }
+    </script>
 </body>
 
 </html>
