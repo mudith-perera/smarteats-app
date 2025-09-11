@@ -242,33 +242,47 @@ function logout() {
   window.location.href = "/login.html";
 }
 
+// Nav visibility based on login + role
 $(document).ready(function () {
   const token = localStorage.getItem("token");
-  if (token) {
-    $("#loginBtn").hide();
-    $("#registerBtn").hide();
-    $("#logoutBtn").show();
-    $("#dashboardBtn").show();
 
-    // 🔑 Decode role from JWT
-    try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      if (payload.role === "admin") {
-        // Hide Profiles nav for admins
-        $("#profileBtn").hide();
-      } else {
-        $("#profileBtn").show();
-      }
-    } catch (e) {
-      console.warn("Failed to decode token", e);
-      $("#profileBtn").show(); // fallback
-    }
-  } else {
+  // Default: hide everything that requires auth
+  $("#logoutBtn").hide();
+  $("#profileBtn").hide();
+  $("#dashboardBtn").hide();
+  $("#mealsBtn").hide();
+
+  if (!token) {
+    // not logged in
     $("#loginBtn").show();
     $("#registerBtn").show();
-    $("#logoutBtn").hide();
-    $("#profileBtn").hide();
-    $("#dashboardBtn").hide();
+    return;
+  }
+
+  // logged in
+  $("#loginBtn").hide();
+  $("#registerBtn").hide();
+  $("#logoutBtn").show();
+  $("#dashboardBtn").show();
+
+  // decode role from JWT; show Meals only for admins
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1] || ""));
+    const role = payload?.role;
+
+    if (role === "admin") {
+      // Admins: show Meals, hide Profiles
+      $("#mealsBtn").show(); // ✅ only admins see Meals
+      $("#profileBtn").hide();
+    } else {
+      // Regular users
+      $("#mealsBtn").hide(); // ✅ users do NOT see Meals
+      $("#profileBtn").show();
+    }
+  } catch (e) {
+    console.warn("Failed to decode token", e);
+    $("#mealsBtn").hide();
+    $("#profileBtn").show();
   }
 });
 
