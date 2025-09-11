@@ -1,22 +1,11 @@
 const mongoose = require('mongoose');
-
-const DietTag = ['vegetarian','vegan','gluten_free','dairy_free','nut_free','halal','kosher'];
-const GoalType = ['lose_weight','maintain','gain_muscle'];
+const Profile = require('./Profile');
 
 // const OAuthProviderSchema = new mongoose.Schema({
 //   provider: { type: String, enum: ['google','apple'], required: true },
 //   providerId: { type: String, required: true },
 //   emailVerified: { type: Boolean, default: false },
 // }, { _id: false });
-
-const ProfileSchema = new mongoose.Schema({
-    age: { type: Number, min: 12, max: 120 },
-    weightKg: { type: Number, min: 20, max: 500 },
-    heightCm: { type: Number, min: 80, max: 250 },
-    dietaryPreferences: [{ type: String, enum: DietTag }],
-    goal: { type: String, enum: GoalType, default: 'maintain' },
-    unitSystem: { type: String, enum: ['metric', 'imperial'], default: 'metric' },
-});
 
 const UserSchema = new mongoose.Schema({
     firstName: { type: String, required: true, trim: true },
@@ -26,7 +15,7 @@ const UserSchema = new mongoose.Schema({
     password: { type: String, required: true, select: false },
     gender: { type: String, enum: ['male', 'female', 'other'], required: true },
     role: { type: String, enum: ['user', 'admin'], default: 'user' },
-    profile: { type: ProfileSchema, default: {} },
+    profile: { type: Profile.schema, default: null  },
     isActive: { type: Boolean, default: true },
     lastLoginAt: { type: Date },
 }, { timestamps: true });

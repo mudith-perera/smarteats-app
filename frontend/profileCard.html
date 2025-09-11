@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Your Profiles</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.min.css">
+</head>
+
+<body>
+    <header class="navbar">
+        <div class="navbar-inner">
+            <div class="brand">
+                <span class="brand-badge" aria-hidden="true"></span>
+                <a href="index.html" class="nav-link" style="padding:0;">SmartEats</a>
+            </div>
+            <nav>
+                <button class="menu-toggle" aria-label="Toggle menu" id="menuBtn">☰</button>
+                <ul id="menu">
+                    <li id="homeBtn"><a class="nav-link" href="index.html">Home</a></li>
+                    <li id="dashboardBtn"><a class="nav-link" href="dashboard.html">Dashboard</a></li>
+                    <li id="profileBtn"><a class="nav-link" href="profileCard.html">Profiles</a></li>
+                    <li id="loginBtn"><a class="nav-link" href="login.html">Login</a></li>
+                    <li id="registerBtn"><a class="nav-link" href="register.html">Register</a></li>
+                    <li id="logoutBtn"><a class="nav-link" href="#" onclick="logout()">Logout</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="profiles-header">
+            <h2>Your Profiles</h2>
+            <a href="profileForm.html" class="button accent">Create / Edit Profile</a>
+        </div>
+
+        <div id="profilesWrap" class="profile-grid" aria-live="polite"></div>
+        <div id="emptyState" class="profiles-empty" style="display:none;">No profiles yet. Create one to get started.
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>© <span id="year"></span> SmartEats</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.all.min.js"></script>
+    <script src="main.js"></script>
+
+    <script>
+
+        function renderProfiles({ profiles, activeProfileId }) {
+            const wrap = document.getElementById('profilesWrap');
+            const empty = document.getElementById('emptyState');
+            wrap.innerHTML = '';
+
+            if (!profiles || profiles.length === 0) {
+                empty.style.display = 'block';
+                return;
+            }
+            empty.style.display = 'none';
+
+            profiles.slice(0, 3).forEach((p, idx) => {
+                const isActive = activeProfileId && String(activeProfileId) === String(p._id);
+                const card = document.createElement('article');
+                card.className = 'profile-card' + (isActive ? ' active' : '');
+                card.setAttribute('tabindex', '0');
+                card.setAttribute('role', 'button');
+                card.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+
+                const title = p.name || `Profile ${idx + 1}`;
+                const prefs = Array.isArray(p.dietaryPreferences) ? p.dietaryPreferences : [];
+
+                card.innerHTML = `
+          <div class="pc-top">
+            <div class="pc-title">${title}</div>
+            ${isActive ? `<span class="pc-badge">Active</span>` : ''}
+          </div>
+          <div class="pc-sub">Goal: <strong>${(p.goal || 'maintain').replace('_', ' ')}</strong> • Unit: <strong>${p.unitSystem || 'metric'}</strong></div>
+          <div class="pc-row">
+            <div class="pc-cell"><span class="k">Age</span><span class="v">${p.age ?? '-'}</span></div>
+            <div class="pc-cell"><span class="k">Weight</span><span class="v">${p.weight ?? '-'}</span></div>
+            <div class="pc-cell"><span class="k">Height</span><span class="v">${p.height ?? '-'}</span></div>
+          </div>
+          <div class="pc-tags">
+            ${prefs.map(tag => `<span class="pc-tag">${String(tag).replace('_', '-')}</span>`).join('')}
+          </div>
+        `;
+
+                card.addEventListener('click', () => selectProfile(p._id));
+                card.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectProfile(p._id); }
+                });
+
+                wrap.appendChild(card);
+            });
+        }
+
+        function loadProfiles() {
+            const token = localStorage.getItem('token');
+            if (!token) { window.location.href = '/login.html'; return; }
+
+            $.ajax({
+                url: '/api/users/me/profiles',
+                method: 'GET',
+                headers: { Authorization: 'Bearer ' + token },
+                success: function (me) {
+                    console.log('User data:', me);
+                    let profiles = me.profiles;
+                    if (!Array.isArray(profiles) && me.profile) profiles = [me.profile]; // fallback
+                    renderProfiles({ profiles: profiles || [], activeProfileId: me.activeProfileId });
+                },
+                error: function (xhr) {
+                    if (xhr.status === 401) window.location.href = '/login.html';
+                }
+            });
+        }
+
+        function selectProfile(profileId) {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            $.ajax({
+                url: '/api/users/me/active-profile',
+                method: 'PUT',
+                headers: { Authorization: 'Bearer ' + token },
+                contentType: 'application/json',
+                data: JSON.stringify({ profileId }),
+                success: function () {
+                    Swal.fire({ toast: true, position: 'top-end', timer: 1200, showConfirmButton: false, icon: 'success', title: 'Profile selected' });
+                    loadProfiles();
+                },
+                error: function (xhr) {
+                    Swal.fire({ icon: 'error', title: 'Could not set profile', text: xhr.responseJSON?.message || 'Please try again.' });
+                }
+            });
+        }
+
+        loadProfiles();
+    </script>
+</body>
+
+</html>
