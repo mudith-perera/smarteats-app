@@ -223,6 +223,43 @@ mpReset?.addEventListener("click", () => {
   setSelectedValues(document.getElementById("goalTypesSel"), []);
 });
 
+// meal plan only shows for admins only
+function getToken() {
+  return localStorage.getItem("token");
+}
+function getRoleFromToken() {
+  try {
+    const t = getToken();
+    if (!t) return null;
+    return JSON.parse(atob(t.split(".")[1] || "")).role || null;
+  } catch {
+    return null;
+  }
+}
+
+function requireAdmin() {
+  const token = getToken();
+  const role = getRoleFromToken();
+
+  if (!token) {
+    // not logged in → go to login
+    location.href = "login.html";
+    return false;
+  }
+  if (role !== "admin") {
+    // logged in but not admin → go to user dashboard (or wherever you want)
+    location.href = "dashboard.html";
+    return false;
+  }
+  return true;
+}
+
+// On page load
+if (!requireAdmin()) {
+  // stop initializing the page if unauthorized
+  throw new Error("unauthorized");
+}
+
 // Init
 requireAdmin();
 loadMealPlans();
