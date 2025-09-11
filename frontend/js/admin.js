@@ -1,6 +1,3 @@
-// Simple admin dashboard for managing users
-// Requirements: JWT token stored in localStorage under 'token' after login
-
 const API_BASE = "/api/admin"; // GET /, DELETE /:id, PUT /:id
 const usersBody = document.getElementById("usersBody");
 const searchInput = document.getElementById("search");
@@ -20,8 +17,6 @@ function getToken() {
   return localStorage.getItem("token");
 }
 
-// Light client-side gate: decode JWT to read "role" (UI only)
-// NOTE: server still enforces admin via middleware.
 function getRoleFromToken() {
   try {
     const token = getToken();
@@ -43,6 +38,7 @@ function ensureAdminUI() {
   }
 }
 
+// ===== Users list =====
 async function fetchUsers() {
   const token = getToken();
   if (!token) {
@@ -66,7 +62,9 @@ async function fetchUsers() {
     renderUsers(data.items || []);
     updatePager(data.page, data.pages, data.total);
   } catch (err) {
-    usersBody.innerHTML = `<tr><td colspan="6" class="danger">Error: ${err.message}</td></tr>`;
+    usersBody.innerHTML = `<tr><td colspan="6" class="danger">Error: ${escapeHtml(
+      err.message
+    )}</td></tr>`;
   }
 }
 
@@ -85,10 +83,10 @@ function renderUsers(users) {
       const active = u.isActive ? "Yes" : "No";
       return `
       <tr data-id="${u._id}">
-        <td>${fullName || "—"}</td>
+        <td>${escapeHtml(fullName || "—")}</td>
         <td>
-          <div>${u.username || "—"}</div>
-          <div style="color:#555">${u.email || "—"}</div>
+          <div>${escapeHtml(u.username || "—")}</div>
+          <div style="color:#555">${escapeHtml(u.email || "—")}</div>
         </td>
         <td>${rolePill}</td>
         <td>${active}</td>
@@ -109,7 +107,7 @@ function updatePager(current, totalPages, total) {
   nextPageBtn.disabled = current >= totalPages;
 }
 
-usersBody.addEventListener("click", async (e) => {
+usersBody?.addEventListener("click", async (e) => {
   const btn = e.target.closest("button");
   if (!btn) return;
   const tr = e.target.closest("tr");
@@ -118,7 +116,7 @@ usersBody.addEventListener("click", async (e) => {
 
   const action = btn.getAttribute("data-action");
   if (action === "view") {
-    alert(`User id: ${id}`); // You can enhance to open a modal with full details.
+    alert(`User id: ${id}`); // Enhance to show a modal with full details if you like
   }
   if (action === "remove") {
     const confirmDel = confirm(
@@ -142,36 +140,131 @@ usersBody.addEventListener("click", async (e) => {
   }
 });
 
-btnSearch.addEventListener("click", () => {
+btnSearch?.addEventListener("click", () => {
   q = searchInput.value || "";
   page = 1;
   fetchUsers();
 });
 
-btnClear.addEventListener("click", () => {
+btnClear?.addEventListener("click", () => {
   searchInput.value = "";
   q = "";
   page = 1;
   fetchUsers();
 });
 
-prevPageBtn.addEventListener("click", () => {
+prevPageBtn?.addEventListener("click", () => {
   if (page > 1) {
     page -= 1;
     fetchUsers();
   }
 });
 
-nextPageBtn.addEventListener("click", () => {
+nextPageBtn?.addEventListener("click", () => {
   page += 1;
   fetchUsers();
 });
 
-btnLogout.addEventListener("click", () => {
+btnLogout?.addEventListener("click", () => {
   localStorage.removeItem("token");
-  location.href = "./index.html"; // or your login page
+  location.href = "./index.html";
 });
+
+// ===== Navbar: Meals jump + active state =====
+(function initMealsNav() {
+  const mealsBtn = document.getElementById("mealsBtn");
+  const mealsSection = document.getElementById("meals-section");
+
+  function setActiveNav(id) {
+    document
+      .querySelectorAll("#menu li a")
+      .forEach((a) => a.classList.remove("active"));
+    const el = document.querySelector(`#${id} > a`);
+    if (el) el.classList.add("active");
+  }
+
+  // Smooth scroll when clicking "Meals"
+  mealsBtn?.addEventListener("click", (e) => {
+    const href = e.target.getAttribute("href") || "";
+    if (href.startsWith("#")) {
+      e.preventDefault();
+      mealsSection?.scrollIntoView({ behavior: "smooth", block: "start" });
+      history.replaceState(null, "", "#meals");
+      setActiveNav("mealsBtn");
+    }
+  });
+
+  // Deep-link support: admin.html#meals
+  if (location.hash === "#meals") {
+    setTimeout(() => {
+      mealsSection?.scrollIntoView({ behavior: "smooth", block: "start" });
+      setActiveNav("mealsBtn");
+    }, 50);
+  }
+})();
+
+// =================== Admin meal plans form (START) ===================
+
+// Allowed enums (mirror backend)
+const DIET_TAGS = [
+  "vegetarian",
+  "vegan",
+  "gluten_free",
+  "dairy_free",
+  "nut_free",
+  "halal",
+  "kosher",
+];
+const GOAL_TYPES = ["lose_weight", "maintain", "gain_muscle"];
+
+// Populate dropdowns
+(function initMealEnums() {
+  const dietSel = document.getElementById("dietTagsSel");
+  const goalSel = document.getElementById("goalTypesSel");
+  if (dietSel && !dietSel.options.length) {
+    DIET_TAGS.forEach((v) => {
+      const opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = v.replace(/_/g, " ");
+      dietSel.appendChild(opt);
+    });
+  }
+  if (goalSel && !goalSel.options.length) {
+    GOAL_TYPES.forEach((v) => {
+      const opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = v.replace(/_/g, " ");
+      goalSel.appendChild(opt);
+    });
+  }
+})();
+
+function getSelectedValues(multiSelectEl) {
+  return Array.from(multiSelectEl.selectedOptions).map((o) => o.value);
+}
+
+function setSelectedValues(multiSelectEl, values = []) {
+  const set = new Set(values);
+  Array.from(multiSelectEl.options).forEach((o) => {
+    o.selected = set.has(o.value);
+  });
+}
+
+// Helpers
+function escapeHtml(str) {
+  return String(str ?? "").replace(/[&<>"']/g, (s) => {
+    const m = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    };
+    return m[s] || s;
+  });
+}
 
 // Init
 ensureAdminUI();
 fetchUsers();
+loadMealPlans();

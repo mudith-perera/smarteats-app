@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Meal Plans — Admin | SmartEats</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="./styles.css" />
+    <style>
+        /* Optional: highlight the active nav item */
+        #menu a.active {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* Reuse your “card table” polish */
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table.user-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--panel);
+            color: var(--text);
+        }
+
+        table.user-table thead th {
+            text-align: left;
+            font-weight: 600;
+            color: var(--muted);
+            border-bottom: 1px solid var(--border);
+            padding: .9rem 1rem;
+            background: linear-gradient(180deg, #121822, #0e141d);
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        table.user-table tbody td {
+            border-top: 1px solid var(--border);
+            padding: .85rem 1rem;
+        }
+
+        table.user-table tbody tr:hover {
+            background: #0e141d;
+        }
+
+        .input {
+            background: var(--panel);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: .6rem .8rem;
+            outline: none;
+            width: 100%;
+        }
+
+        .button {
+            padding: .6rem .9rem;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: linear-gradient(135deg, #0f172a, #111827);
+            color: var(--text);
+            cursor: pointer;
+        }
+
+        .button.accent {
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: #0b0f14;
+            font-weight: 600;
+            border-color: transparent;
+        }
+
+        .button.sm {
+            padding: .45rem .65rem;
+            font-size: 14px;
+            border-radius: 8px;
+        }
+
+        .button.danger {
+            border-color: #43252a;
+            background: linear-gradient(135deg, #2a1115, #1a0c0e);
+            color: #ffb4c0;
+        }
+
+        .row {
+            display: grid;
+            gap: .8rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="navbar">
+        <div class="navbar-inner container">
+            <div class="brand">
+                <span class="brand-badge" aria-hidden="true"></span>
+                <a href="index.html" class="nav-link" style="padding:0;">SmartEats</a>
+            </div>
+            <nav>
+                <button class="menu-toggle" aria-label="Toggle menu" id="menuBtn">☰</button>
+                <ul id="menu">
+                    <li id="homeBtn"><a class="nav-link" href="index.html">Home</a></li>
+                    <li id="dashboardBtn"><a class="nav-link" href="dashboard.html">Dashboard</a></li>
+                    <li id="mealsBtn"><a class="nav-link active" href="meal-plans.html">Meals</a></li>
+                    <li id="profileBtn"><a class="nav-link" href="profileCard.html">Profiles</a></li>
+                    <li id="loginBtn"><a class="nav-link" href="login.html">Login</a></li>
+                    <li id="registerBtn"><a class="nav-link" href="register.html">Register</a></li>
+                    <li id="logoutBtn"><a class="nav-link" href="#" onclick="logout()">Logout</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main -->
+    <main class="container">
+        <div class="card">
+            <h2 style="margin:0 0 .4rem 0;">Meal Plans</h2>
+            <p class="muted">Create, update, and delete meal plans.</p>
+            <div id="guard" class="muted" style="margin:.4rem 0 .8rem 0;"></div>
+
+            <form id="mp-form" style="margin-top:.8rem;">
+                <div class="row" style="grid-template-columns:repeat(2,1fr);">
+                    <input class="input" name="title" placeholder="Title" required />
+                    <input class="input" name="calories" type="number" min="0" placeholder="Calories (kcal)" />
+                    <input class="input" name="protein" type="number" min="0" placeholder="Protein (g)" />
+                    <input class="input" name="fat" type="number" min="0" placeholder="Fat (g)" />
+                    <input class="input" name="carbs" type="number" min="0" placeholder="Carbs (g)" />
+                </div>
+
+                <textarea class="input" name="description" placeholder="Description"
+                    style="margin-top:.6rem;"></textarea>
+
+                <!-- Diet & Goal dropdowns (multi-select) -->
+                <div class="row" style="grid-template-columns:1fr 1fr; margin-top:.6rem;">
+                    <div>
+                        <label for="dietTagsSel" class="muted" style="display:block;margin-bottom:.35rem;">Diet
+                            tags</label>
+                        <select id="dietTagsSel" name="dietTags" multiple size="6" class="input"
+                            style="height:auto; min-height: 172px;"></select>
+                        <small class="muted">Hold Ctrl/Cmd to select multiple</small>
+                    </div>
+                    <div>
+                        <label for="goalTypesSel" class="muted"
+                            style="display:block;margin-bottom:.35rem;">Goals</label>
+                        <select id="goalTypesSel" name="goalTypes" multiple size="3" class="input"
+                            style="height:auto; min-height: 100px;"></select>
+                    </div>
+                </div>
+
+                <div style="margin-top:.6rem;display:flex;gap:.6rem;">
+                    <button type="submit" class="button accent">Save Meal Plan</button>
+                    <button type="button" id="mp-reset" class="button">Reset</button>
+                </div>
+                <input type="hidden" name="id" />
+            </form>
+        </div>
+
+        <div class="card" style="margin-top:1rem;">
+            <div class="table-wrap">
+                <table class="user-table" role="table">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Macros</th>
+                            <th>Diet</th>
+                            <th>Goals</th>
+                            <th style="width:160px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mp-body">
+                        <tr>
+                            <td colspan="5" class="muted" style="padding:1rem;">Loading…</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>© <span id="year">2025</span> SmartEats</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.all.min.js"></script>
+    <script>
+        function logout() { localStorage.removeItem('token'); location.href = 'index.html'; }
+    </script>
+    <script src="./js/main.js"></script>
+    <script src="./js/mealPlans.js"></script>
+</body>
+
+</html>
