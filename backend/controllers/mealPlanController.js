@@ -103,3 +103,94 @@ exports.deleteMealPlan = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+// Suggested for the logged-in user (scored matching)
+// computes a score for each meal plan:
+
+// +2 per matching diet tag
+
+// +3 if goal matches
+
+// Sort by score desc, createdAt desc
+
+// If nothing matches, gracefully fallback to the most recent active plans.
+exports.suggestedMealPlans = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Load user to find the active profile pointer (could be ObjectId or embedded doc)
+    const user = await User.findById(userId).select("profile").lean();
+
+    let activeProfile = null;
+    if (user?.profile) {
+      const activeId =
+        typeof user.profile === "object" && user.profile._id
+          ? user.profile._id
+          : user.profile;
+      // Fetch fresh profile from Profiles collection
+      activeProfile = await Profile.findOne({
+        _id: activeId,
+        user: userId,
+      }).lean();
+    }
+
+    const dietaryPreferences = Array.isArray(activeProfile?.dietaryPreferences)
+      ? activeProfile.dietaryPreferences
+      : [];
+    const goal = activeProfile?.goal || null;
+
+    // If we have prefs/goal, run a scored aggregation
+    const hasSignals = dietaryPreferences.length > 0 || !!goal;
+
+    let items = [];
+    if (hasSignals) {
+      // Use aggregation to compute score per plan
+      items = await MealPlan.aggregate([
+        { $match: { isActive: true } },
+        {
+          $addFields: {
+            dietMatches: {
+              $size: {
+                $setIntersection: ["$dietTags", dietaryPreferences],
+              },
+            },
+            goalMatch: goal
+              ? { $cond: [{ $in: [goal, "$goalTypes"] }, 1, 0] }
+              : 0,
+          },
+        },
+        {
+          $addFields: {
+            score: {
+              $add: [
+                { $multiply: ["$dietMatches", 2] },
+                { $multiply: ["$goalMatch", 3] },
+              ],
+            },
+          },
+        },
+        // Prefer plans with any score; if all zero, we'll fallback
+        { $sort: { score: -1, createdAt: -1 } },
+        { $limit: 12 },
+      ]);
+      // If all scored results are zero or empty, fallback to recents
+      const hasPositive = items.some((p) => (p.score ?? 0) > 0);
+      if (!hasPositive) {
+        items = await MealPlan.find({ isActive: true })
+          .sort({ createdAt: -1 })
+          .limit(12)
+          .lean();
+      }
+    } else {
+      // No profile signals → just return recent plans
+      items = await MealPlan.find({ isActive: true })
+        .sort({ createdAt: -1 })
+        .limit(12)
+        .lean();
+    }
+
+    return res.json({ items, profileSignals: { dietaryPreferences, goal } });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
