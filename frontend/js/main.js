@@ -235,6 +235,8 @@ function loadDashboard() {
       }
     },
   });
+
+  loadSuggestedMealPlans();
 }
 
 function logout() {
@@ -242,33 +244,47 @@ function logout() {
   window.location.href = "/login.html";
 }
 
+// Nav visibility based on login + role
 $(document).ready(function () {
   const token = localStorage.getItem("token");
-  if (token) {
-    $("#loginBtn").hide();
-    $("#registerBtn").hide();
-    $("#logoutBtn").show();
-    $("#dashboardBtn").show();
 
-    // 🔑 Decode role from JWT
-    try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      if (payload.role === "admin") {
-        // Hide Profiles nav for admins
-        $("#profileBtn").hide();
-      } else {
-        $("#profileBtn").show();
-      }
-    } catch (e) {
-      console.warn("Failed to decode token", e);
-      $("#profileBtn").show(); // fallback
-    }
-  } else {
+  // Default: hide everything that requires auth
+  $("#logoutBtn").hide();
+  $("#profileBtn").hide();
+  $("#dashboardBtn").hide();
+  $("#mealsBtn").hide();
+
+  if (!token) {
+    // not logged in
     $("#loginBtn").show();
     $("#registerBtn").show();
-    $("#logoutBtn").hide();
-    $("#profileBtn").hide();
-    $("#dashboardBtn").hide();
+    return;
+  }
+
+  // logged in
+  $("#loginBtn").hide();
+  $("#registerBtn").hide();
+  $("#logoutBtn").show();
+  $("#dashboardBtn").show();
+
+  // decode role from JWT; show Meals only for admins
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1] || ""));
+    const role = payload?.role;
+
+    if (role === "admin") {
+      // Admins: show Meals, hide Profiles
+      $("#mealsBtn").show(); // ✅ only admins see Meals
+      $("#profileBtn").hide();
+    } else {
+      // Regular users
+      $("#mealsBtn").hide(); // ✅ users do NOT see Meals
+      $("#profileBtn").show();
+    }
+  } catch (e) {
+    console.warn("Failed to decode token", e);
+    $("#mealsBtn").hide();
+    $("#profileBtn").show();
   }
 });
 
@@ -286,7 +302,7 @@ document.getElementById("dashboardBtn")?.addEventListener("click", (e) => {
   } catch {}
 });
 
-// Admin get users
+// --- Admin get users ---
 async function getUsers() {
   const res = await fetch(API_URL, {
     headers: { Authorization: "Bearer " + token },
@@ -318,3 +334,134 @@ async function getUsers() {
     yearEl.textContent = new Date().getFullYear();
   }
 })();
+
+// --- Suggested Meal Plans on Dashboard ---
+async function loadSuggestedMealPlans() {
+  const grid = document.getElementById("mealplans-grid");
+  if (!grid) return;
+
+  const token = localStorage.getItem("token");
+  if (!token) {
+    grid.innerHTML =
+      '<div class="muted">Log in to see meal plan suggestions.</div>';
+    return;
+  }
+
+  try {
+    grid.innerHTML = '<div class="muted">Loading meal plans…</div>';
+    const res = await fetch("/api/mealplans/suggested", {
+      headers: { Authorization: "Bearer " + token },
+    });
+    if (!res.ok) throw new Error("Failed to load suggested meal plans");
+
+    const data = await res.json();
+    const items = data.items || [];
+
+    if (!items.length) {
+      grid.innerHTML =
+        '<div class="muted">No suggestions yet. Complete your profile to get personalized plans.</div>';
+      return;
+    }
+
+    grid.innerHTML = items.map(renderMealPlanCard).join("");
+  } catch (err) {
+    grid.innerHTML = `<div class="muted">${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function renderMealPlanCard(mp) {
+  const diet = (mp.dietTags || []).join(", ") || "—";
+  const goal = mp.goalType || "—";
+  const kcal = mp.calories ?? "—";
+  const p = mp.protein ?? "—";
+  const f = mp.fat ?? "—";
+  const c = mp.carbs ?? "—";
+
+  return `
+    <article class="card" data-mp-id="${mp._id}">
+      <h3 style="margin:.2rem 0 .4rem 0;">${escapeHtml(
+        mp.title || "Untitled"
+      )}</h3>
+      <p class="muted" style="margin:0 0 .6rem 0;">${escapeHtml(
+        mp.description || ""
+      )}</p>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.4rem;margin:.4rem 0;">
+        <div><span class="muted">Calories:</span> ${kcal}</div>
+        <div><span class="muted">Protein:</span> ${p} g</div>
+        <div><span class="muted">Fat:</span> ${f} g</div>
+        <div><span class="muted">Carbs:</span> ${c} g</div>
+      </div>
+      <div class="muted" style="font-size:.9rem;margin-top:.2rem;"><strong>Diet:</strong> ${escapeHtml(
+        diet
+      )}</div>
+      <div class="muted" style="font-size:.9rem;"><strong>Goal:</strong> ${goal}</div>
+      <div style="margin-top:.8rem;display:flex;gap:.5rem;">
+        <button class="button" data-action="view-mp" data-id="${
+          mp._id
+        }">View details</button>
+      </div>
+    </article>
+  `;
+}
+
+// Delegate click for "View details"
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest('button[data-action="view-mp"]');
+  if (!btn) return;
+
+  const id = btn.getAttribute("data-id");
+  try {
+    const res = await fetch("/api/mealplans/" + encodeURIComponent(id));
+    if (!res.ok) throw new Error("Failed to load meal plan");
+
+    const mp = await res.json();
+    showMealPlanDetails(mp);
+  } catch (err) {
+    Swal.fire({ icon: "error", title: "Oops", text: err.message });
+  }
+});
+
+function showMealPlanDetails(mp) {
+  const diet = (mp.dietTags || []).join(", ") || "—";
+  const goal = mp.goalType || "—";
+
+  const html = `
+    <div style="text-align:left">
+      <p class="muted" style="margin:0 0 .6rem 0;">${escapeHtml(
+        mp.description || ""
+      )}</p>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.4rem;margin:.4rem 0;">
+        <div><strong>Calories:</strong> ${mp.calories ?? "—"}</div>
+        <div><strong>Protein:</strong> ${mp.protein ?? "—"} g</div>
+        <div><strong>Fat:</strong> ${mp.fat ?? "—"} g</div>
+        <div><strong>Carbs:</strong> ${mp.carbs ?? "—"} g</div>
+      </div>
+      <p style="margin:.4rem 0 0 0;"><strong>Diet:</strong> ${escapeHtml(
+        diet
+      )}</p>
+      <p style="margin:.2rem 0 0 0;"><strong>Goal:</strong> ${goal}</p>
+    </div>
+  `;
+
+  Swal.fire({
+    title: escapeHtml(mp.title || "Meal plan"),
+    html,
+    width: 600,
+    confirmButtonText: "Close",
+  });
+}
+
+// Reuse (or keep) your existing escape helper
+function escapeHtml(str) {
+  return String(str ?? "").replace(
+    /[&<>"']/g,
+    (s) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      }[s])
+  );
+}

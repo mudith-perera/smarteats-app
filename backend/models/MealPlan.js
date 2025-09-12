@@ -20,7 +20,7 @@ const MealPlanSchema = new mongoose.Schema(
     fat: { type: Number, min: 0, default: 0 }, // grams
     carbs: { type: Number, min: 0, default: 0 }, // grams
     dietTags: [{ type: String, enum: DietTag }],
-    goalTypes: [{ type: String, enum: GoalType }],
+    goalType: { type: String, enum: GoalType, required: true },
     isActive: { type: Boolean, default: true },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   },

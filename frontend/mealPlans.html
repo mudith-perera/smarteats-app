@@ -144,10 +144,10 @@
                         <small class="muted">Hold Ctrl/Cmd to select multiple</small>
                     </div>
                     <div>
-                        <label for="goalTypesSel" class="muted"
-                            style="display:block;margin-bottom:.35rem;">Goals</label>
-                        <select id="goalTypesSel" name="goalTypes" multiple size="3" class="input"
-                            style="height:auto; min-height: 100px;"></select>
+                        <label for="goalTypeSel" class="muted" style="display:block;margin-bottom:.35rem;">Goal</label>
+                        <select id="goalTypeSel" name="goalType" class="input">
+                            <!-- options will be injected by JS -->
+                        </select>
                     </div>
                 </div>
 
@@ -167,7 +167,7 @@
                             <th>Title</th>
                             <th>Macros</th>
                             <th>Diet</th>
-                            <th>Goals</th>
+                            <th>Goal</th>
                             <th style="width:160px;">Actions</th>
                         </tr>
                     </thead>
@@ -177,6 +177,22 @@
                         </tr>
                     </tbody>
                 </table>
+                <div id="mp-pager" style="display:flex; align-items:center; gap:.6rem; padding: .8rem 0;">
+                    <button id="mp-prev" class="button" disabled>Prev</button>
+                    <span id="mp-pageinfo" class="muted">Page 1 of 1</span>
+                    <button id="mp-next" class="button" disabled>Next</button>
+
+                    <div style="margin-left:auto; display:flex; align-items:center; gap:.4rem;">
+                        <label for="mp-limit" class="muted">Rows:</label>
+                        <select id="mp-limit" class="input" style="width:90px;">
+                            <option>5</option>
+                            <option selected>10</option>
+                            <option>20</option>
+                            <option>50</option>
+                        </select>
+                    </div>
+                </div>
+
             </div>
         </div>
     </main>
