@@ -16,7 +16,7 @@ exports.createMealPlan = async (req, res) => {
 // GET /api/mealplans?q=&diet=&goal=&page=&limit=
 exports.listMealPlans = async (req, res) => {
   try {
-    const { q, diet, goal, page = 1, limit = 10 } = req.query;
+    const { q, diet, goal, page = 1, limit = 100 } = req.query;
     const filter = { isActive: true };
 
     if (q && q.trim()) {
@@ -155,7 +155,7 @@ exports.suggestedMealPlans = async (req, res) => {
               },
             },
             goalMatch: goal
-              ? { $cond: [{ $in: [goal, "$goalTypes"] }, 1, 0] }
+              ? { $cond: [{ $eq: ["$goalType", goal] }, 1, 0] }
               : 0,
           },
         },

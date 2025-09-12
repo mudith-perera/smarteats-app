@@ -371,7 +371,7 @@ async function loadSuggestedMealPlans() {
 
 function renderMealPlanCard(mp) {
   const diet = (mp.dietTags || []).join(", ") || "—";
-  const goals = (mp.goalTypes || []).join(", ") || "—";
+  const goal = mp.goalType || "—";
   const kcal = mp.calories ?? "—";
   const p = mp.protein ?? "—";
   const f = mp.fat ?? "—";
@@ -394,9 +394,7 @@ function renderMealPlanCard(mp) {
       <div class="muted" style="font-size:.9rem;margin-top:.2rem;"><strong>Diet:</strong> ${escapeHtml(
         diet
       )}</div>
-      <div class="muted" style="font-size:.9rem;"><strong>Goals:</strong> ${escapeHtml(
-        goals
-      )}</div>
+      <div class="muted" style="font-size:.9rem;"><strong>Goal:</strong> ${goal}</div>
       <div style="margin-top:.8rem;display:flex;gap:.5rem;">
         <button class="button" data-action="view-mp" data-id="${
           mp._id
@@ -425,7 +423,8 @@ document.addEventListener("click", async (e) => {
 
 function showMealPlanDetails(mp) {
   const diet = (mp.dietTags || []).join(", ") || "—";
-  const goals = (mp.goalTypes || []).join(", ") || "—";
+  const goal = mp.goalType || "—";
+
   const html = `
     <div style="text-align:left">
       <p class="muted" style="margin:0 0 .6rem 0;">${escapeHtml(
@@ -440,9 +439,7 @@ function showMealPlanDetails(mp) {
       <p style="margin:.4rem 0 0 0;"><strong>Diet:</strong> ${escapeHtml(
         diet
       )}</p>
-      <p style="margin:.2rem 0 0 0;"><strong>Goals:</strong> ${escapeHtml(
-        goals
-      )}</p>
+      <p style="margin:.2rem 0 0 0;"><strong>Goal:</strong> ${goal}</p>
     </div>
   `;
 

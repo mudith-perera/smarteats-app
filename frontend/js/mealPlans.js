@@ -1,4 +1,4 @@
-// Meal Plans Admin (separate page)
+// ===== Admin Meal Plans (client-side pagination) =====
 
 const MP_API = "/api/mealplans";
 const mpBody = document.getElementById("mp-body");
@@ -6,29 +6,40 @@ const mpForm = document.getElementById("mp-form");
 const mpReset = document.getElementById("mp-reset");
 const guard = document.getElementById("guard");
 
-// Local helpers (self-contained for this page)
+// Pager state (client-side)
+let mpPage = 1;
+let mpLimit = 10;
+let mpQ = "";
+
+// Pager elements
+const mpPrev = document.getElementById("mp-prev");
+const mpNext = document.getElementById("mp-next");
+const mpPageInfo = document.getElementById("mp-pageinfo");
+const mpLimitSel = document.getElementById("mp-limit");
+
+// Optional search elems
+const mpSearch = document.getElementById("mp-search");
+const mpSearchBtn = document.getElementById("mp-search-btn");
+const mpClearBtn = document.getElementById("mp-clear-btn");
+
+// Local helpers
 function getToken() {
   return localStorage.getItem("token");
 }
 function escapeHtml(str) {
-  return String(str ?? "").replace(/[&<>"']/g, (s) => {
-    const m = {
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;",
-    };
-    return m[s] || s;
-  });
+  return String(str ?? "").replace(
+    /[&<>"']/g,
+    (s) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[
+        s
+      ])
+  );
 }
 function getRoleFromToken() {
   try {
-    const token = getToken();
-    if (!token) return null;
-    const [, payload] = token.split(".");
-    const json = JSON.parse(atob(payload));
-    return json.role || null;
+    const t = getToken();
+    if (!t) return null;
+    return JSON.parse(atob(t.split(".")[1] || "")).role || null;
   } catch {
     return null;
   }
@@ -36,16 +47,16 @@ function getRoleFromToken() {
 function requireAdmin() {
   const role = getRoleFromToken();
   if (role !== "admin") {
-    guard.textContent =
-      "You are not authorized to view this page. (Admins only)";
-    // Hard-redirect if you prefer:
+    guard &&
+      (guard.textContent =
+        "You are not authorized to view this page. (Admins only)");
+    // Optionally redirect:
     // location.href = "dashboard.html";
-  } else {
-    guard.textContent = "";
-  }
+    throw new Error("unauthorized");
+  } else if (guard) guard.textContent = "";
 }
 
-// Allowed enums (mirror backend)
+// Enums and selects
 const DIET_TAGS = [
   "vegetarian",
   "vegan",
@@ -57,10 +68,8 @@ const DIET_TAGS = [
 ];
 const GOAL_TYPES = ["lose_weight", "maintain", "gain_muscle"];
 
-// Populate dropdowns
-(function initMealEnums() {
+(function initEnums() {
   const dietSel = document.getElementById("dietTagsSel");
-  const goalSel = document.getElementById("goalTypesSel");
   if (dietSel && !dietSel.options.length) {
     DIET_TAGS.forEach((v) => {
       const opt = document.createElement("option");
@@ -69,13 +78,13 @@ const GOAL_TYPES = ["lose_weight", "maintain", "gain_muscle"];
       dietSel.appendChild(opt);
     });
   }
+  const goalSel = document.getElementById("goalTypeSel");
   if (goalSel && !goalSel.options.length) {
-    GOAL_TYPES.forEach((v) => {
-      const opt = document.createElement("option");
-      opt.value = v;
-      opt.textContent = v.replace(/_/g, " ");
-      goalSel.appendChild(opt);
-    });
+    goalSel.innerHTML =
+      `<option value="">-- choose goal --</option>` +
+      GOAL_TYPES.map(
+        (v) => `<option value="${v}">${v.replace(/_/g, " ")}</option>`
+      ).join("");
   }
 })();
 
@@ -89,31 +98,76 @@ function setSelectedValues(multiSelectEl, values = []) {
   });
 }
 
-// Load list
-async function loadMealPlans() {
-  try {
-    const res = await fetch(MP_API);
+// ===== DATA CACHE =====
+let allItems = []; // full list from server (once)
+let filteredItems = []; // after search filter
+
+// Fetch ALL pages once, then paginate in FE
+async function fetchAllMealPlansOnce() {
+  const firstLimit = 50; // page size for the server requests
+  let page = 1;
+  let pages = 1;
+  const acc = [];
+
+  while (page <= pages) {
+    const params = new URLSearchParams({
+      page: String(page),
+      limit: String(firstLimit),
+    });
+    const res = await fetch(`${MP_API}?${params.toString()}`);
     if (!res.ok) throw new Error("Failed to load meal plans");
     const data = await res.json();
-    const items = data.items || [];
-    if (!items.length) {
-      mpBody.innerHTML = `<tr><td colspan="5" class="muted" style="padding:1rem;">No meal plans yet.</td></tr>`;
-      return;
-    }
-    mpBody.innerHTML = items
+
+    (data.items || []).forEach((x) => acc.push(x));
+    pages = data.pages || 1;
+    page += 1;
+  }
+
+  return acc;
+}
+
+// Filter (client-side)
+function applyFilter() {
+  const q = (mpQ || "").trim().toLowerCase();
+  if (!q) {
+    filteredItems = allItems.slice();
+    return;
+  }
+  filteredItems = allItems.filter((mp) => {
+    const t = (mp.title || "").toLowerCase();
+    const d = (mp.description || "").toLowerCase();
+    const diet = (mp.dietTags || []).join(" ").toLowerCase();
+    const goal = (mp.goalType || "").toLowerCase();
+    return (
+      t.includes(q) || d.includes(q) || diet.includes(q) || goal.includes(q)
+    );
+  });
+}
+
+// Render current page slice
+function renderCurrentPage() {
+  const total = filteredItems.length;
+  const totalPages = Math.max(1, Math.ceil(total / mpLimit));
+  if (mpPage > totalPages) mpPage = totalPages;
+
+  const start = (mpPage - 1) * mpLimit;
+  const end = start + mpLimit;
+  const slice = filteredItems.slice(start, end);
+
+  if (!slice.length) {
+    mpBody.innerHTML = `<tr><td colspan="5" class="muted" style="padding:1rem;">No meal plans found.</td></tr>`;
+  } else {
+    mpBody.innerHTML = slice
       .map(
         (mp) => `
       <tr data-id="${mp._id}">
-        <td><strong>${escapeHtml(
-          mp.title || ""
-        )}</strong><div class="muted">${escapeHtml(
-          mp.description || ""
-        )}</div></td>
+        <td><strong>${escapeHtml(mp.title || "")}</strong>
+            <div class="muted">${escapeHtml(mp.description || "")}</div></td>
         <td>${mp.calories ?? 0} kcal • P ${mp.protein ?? 0}g • F ${
           mp.fat ?? 0
         }g • C ${mp.carbs ?? 0}g</td>
         <td>${(mp.dietTags || []).map(escapeHtml).join(", ") || "—"}</td>
-        <td>${(mp.goalTypes || []).map(escapeHtml).join(", ") || "—"}</td>
+        <td>${escapeHtml(mp.goalType || "—")}</td>
         <td class="row-actions">
           <button class="button sm" data-action="edit">Edit</button>
           <button class="button sm danger" data-action="delete">Delete</button>
@@ -122,14 +176,27 @@ async function loadMealPlans() {
     `
       )
       .join("");
-  } catch (err) {
-    mpBody.innerHTML = `<tr><td colspan="5" class="muted" style="padding:1rem;">${escapeHtml(
-      err.message
-    )}</td></tr>`;
   }
+
+  // pager UI
+  if (mpPageInfo)
+    mpPageInfo.textContent = `Page ${mpPage} of ${totalPages} • ${total} items`;
+  if (mpPrev) mpPrev.disabled = mpPage <= 1;
+  if (mpNext) mpNext.disabled = mpPage >= totalPages;
 }
 
-// Edit/Delete actions
+// Public loader (don’t refetch after first load)
+let _loadedOnce = false;
+async function loadMealPlansClientSide() {
+  if (!_loadedOnce) {
+    allItems = await fetchAllMealPlansOnce();
+    _loadedOnce = true;
+  }
+  applyFilter();
+  renderCurrentPage();
+}
+
+// ===== Edit/Delete handlers =====
 mpBody?.addEventListener("click", async (e) => {
   const btn = e.target.closest("button");
   if (!btn) return;
@@ -139,22 +206,24 @@ mpBody?.addEventListener("click", async (e) => {
   if (!id) return;
 
   if (action === "edit") {
+    // Fetch full doc (in case you want freshest), or read from cache (optional)
     const res = await fetch(`${MP_API}/${id}`);
     const mp = await res.json();
+
     mpForm.title.value = mp.title || "";
     mpForm.description.value = mp.description || "";
     mpForm.calories.value = mp.calories ?? 0;
     mpForm.protein.value = mp.protein ?? 0;
     mpForm.fat.value = mp.fat ?? 0;
     mpForm.carbs.value = mp.carbs ?? 0;
+
     setSelectedValues(
       document.getElementById("dietTagsSel"),
       mp.dietTags || []
     );
-    setSelectedValues(
-      document.getElementById("goalTypesSel"),
-      mp.goalTypes || []
-    );
+    const goalSel = document.getElementById("goalTypeSel");
+    if (goalSel) goalSel.value = mp.goalType || "";
+
     mpForm.id.value = id;
     window.scrollTo({
       top: mpForm.getBoundingClientRect().top + window.scrollY - 80,
@@ -172,7 +241,14 @@ mpBody?.addEventListener("click", async (e) => {
       alert("Failed to delete");
       return;
     }
-    loadMealPlans();
+
+    // Update local cache
+    allItems = allItems.filter((x) => x._id !== id);
+    applyFilter();
+    // If current page becomes empty and not page 1, step back
+    const totalPages = Math.max(1, Math.ceil(filteredItems.length / mpLimit));
+    if (mpPage > totalPages) mpPage = totalPages;
+    renderCurrentPage();
   }
 });
 
@@ -188,7 +264,7 @@ mpForm?.addEventListener("submit", async (e) => {
     fat: Number(mpForm.fat.value) || 0,
     carbs: Number(mpForm.carbs.value) || 0,
     dietTags: getSelectedValues(document.getElementById("dietTagsSel")),
-    goalTypes: getSelectedValues(document.getElementById("goalTypesSel")),
+    goalType: document.getElementById("goalTypeSel")?.value || "",
   };
 
   const id = mpForm.id.value;
@@ -210,56 +286,65 @@ mpForm?.addEventListener("submit", async (e) => {
     return;
   }
 
+  const saved = await res.json().catch(() => null);
+  // Normalized saved item (depending on controller response shape)
+  const savedItem = saved?.mealPlan || saved; // handle { mealPlan } or the doc itself
+
+  // Update local cache
+  if (id) {
+    const idx = allItems.findIndex((x) => x._id === id);
+    if (idx >= 0) allItems[idx] = { ...allItems[idx], ...savedItem };
+  } else if (savedItem && savedItem._id) {
+    allItems.unshift(savedItem); // new at top
+  }
+
+  // Reset form UI
   mpForm.reset();
   setSelectedValues(document.getElementById("dietTagsSel"), []);
-  setSelectedValues(document.getElementById("goalTypesSel"), []);
-  loadMealPlans();
+  const goalSel = document.getElementById("goalTypeSel");
+  if (goalSel) goalSel.value = "";
+
+  // Re-render current page with filters
+  applyFilter();
+  renderCurrentPage();
 });
 
-// Reset
-mpReset?.addEventListener("click", () => {
-  mpForm.reset();
-  setSelectedValues(document.getElementById("dietTagsSel"), []);
-  setSelectedValues(document.getElementById("goalTypesSel"), []);
+// Pager controls (client-side)
+mpPrev?.addEventListener("click", () => {
+  if (mpPage > 1) {
+    mpPage -= 1;
+    renderCurrentPage();
+  }
+});
+mpNext?.addEventListener("click", () => {
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / mpLimit));
+  if (mpPage < totalPages) {
+    mpPage += 1;
+    renderCurrentPage();
+  }
+});
+mpLimitSel?.addEventListener("change", () => {
+  mpLimit = parseInt(mpLimitSel.value, 10) || 10;
+  mpPage = 1;
+  renderCurrentPage();
 });
 
-// meal plan only shows for admins only
-function getToken() {
-  return localStorage.getItem("token");
-}
-function getRoleFromToken() {
-  try {
-    const t = getToken();
-    if (!t) return null;
-    return JSON.parse(atob(t.split(".")[1] || "")).role || null;
-  } catch {
-    return null;
-  }
-}
-
-function requireAdmin() {
-  const token = getToken();
-  const role = getRoleFromToken();
-
-  if (!token) {
-    // not logged in → go to login
-    location.href = "login.html";
-    return false;
-  }
-  if (role !== "admin") {
-    // logged in but not admin → go to user dashboard (or wherever you want)
-    location.href = "dashboard.html";
-    return false;
-  }
-  return true;
-}
-
-// On page load
-if (!requireAdmin()) {
-  // stop initializing the page if unauthorized
-  throw new Error("unauthorized");
-}
+// Optional search hooks
+mpSearchBtn?.addEventListener("click", () => {
+  mpQ = (mpSearch?.value || "").trim();
+  mpPage = 1;
+  applyFilter();
+  renderCurrentPage();
+});
+mpClearBtn?.addEventListener("click", () => {
+  if (mpSearch) mpSearch.value = "";
+  mpQ = "";
+  mpPage = 1;
+  applyFilter();
+  renderCurrentPage();
+});
 
 // Init
 requireAdmin();
-loadMealPlans();
+mpLimit = parseInt(mpLimitSel?.value || "10", 10) || 10;
+loadMealPlansClientSide();
