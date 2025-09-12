@@ -1,5 +1,6 @@
 const MealPlan = require("../models/MealPlan");
 const User = require("../models/User");
+const Profile = require("../models/Profile");
 
 // POST /api/mealplans (admin)
 exports.createMealPlan = async (req, res) => {
@@ -17,55 +18,129 @@ exports.createMealPlan = async (req, res) => {
 exports.listMealPlans = async (req, res) => {
   try {
     const { q, diet, goal, page = 1, limit = 100 } = req.query;
+
     const filter = { isActive: true };
 
     if (q && q.trim()) {
-      const regex = new RegExp(q.trim(), "i");
-      filter.$or = [{ title: regex }, { description: regex }];
+      filter.$or = [
+        { title: { $regex: q.trim(), $options: "i" } },
+        { description: { $regex: q.trim(), $options: "i" } },
+      ];
     }
-    if (diet) filter.dietTags = { $in: Array.isArray(diet) ? diet : [diet] };
-    if (goal) filter.goalTypes = { $in: Array.isArray(goal) ? goal : [goal] };
 
-    const pageNum = parseInt(page, 10);
-    const limitNum = parseInt(limit, 10);
+    if (diet) {
+      // support single or multiple diet tags
+      const dietArr = Array.isArray(diet)
+        ? diet
+        : String(diet)
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
+      if (dietArr.length) filter.dietTags = { $in: dietArr };
+    }
+
+    if (goal) {
+      const goalArr = Array.isArray(goal)
+        ? goal
+        : String(goal)
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
+      filter.goalType = goalArr.length > 1 ? { $in: goalArr } : goalArr[0];
+    }
+
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = parseInt(limit, 10) || 10;
     const skip = (pageNum - 1) * limitNum;
 
     const [items, total] = await Promise.all([
-      MealPlan.find(filter).skip(skip).limit(limitNum).sort({ createdAt: -1 }),
+      MealPlan.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limitNum),
       MealPlan.countDocuments(filter),
     ]);
 
-    res.json({
-      items,
-      total,
-      page: pageNum,
-      pages: Math.ceil(total / limitNum),
-    });
+    const pages = Math.max(1, Math.ceil(total / limitNum));
+    return res.json({ items, total, page: pageNum, pages });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    return res.status(500).json({ message: err.message });
   }
 };
 
-// GET /api/mealplans/suggested (auth)
+// GET /api/mealplans/suggested
 exports.suggestedMealPlans = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
-    const profile = user?.profile || {};
-    const prefs = Array.isArray(profile.dietaryPreferences)
-      ? profile.dietaryPreferences
+    const userId = req.user.id;
+
+    // Resolve latest active profile from the DB (handles objectId or embedded)
+    const user = await User.findById(userId).select("profile").lean();
+    let activeProfile = null;
+    if (user?.profile) {
+      const activeId =
+        typeof user.profile === "object" && user.profile._id
+          ? user.profile._id
+          : user.profile;
+      activeProfile = await Profile.findOne({
+        _id: activeId,
+        user: userId,
+      }).lean();
+    }
+
+    const dietaryPreferences = Array.isArray(activeProfile?.dietaryPreferences)
+      ? activeProfile.dietaryPreferences
       : [];
-    const goal = profile.goal;
+    const goal = activeProfile?.goal || null;
 
-    const filter = { isActive: true };
-    if (prefs.length) filter.dietTags = { $in: prefs };
-    if (goal) filter.goalTypes = { $in: [goal] };
+    const hasSignals = dietaryPreferences.length > 0 || !!goal;
 
-    const query = Object.keys(filter).length ? filter : { isActive: true };
-    const items = await MealPlan.find(query).limit(8).sort({ createdAt: -1 });
+    let items = [];
+    if (hasSignals) {
+      // Score: +2 per diet tag match, +3 if goalType matches
+      items = await MealPlan.aggregate([
+        { $match: { isActive: true } },
+        {
+          $addFields: {
+            dietMatches: {
+              $size: {
+                $setIntersection: ["$dietTags", dietaryPreferences],
+              },
+            },
+            goalMatch: goal
+              ? { $cond: [{ $eq: ["$goalType", goal] }, 1, 0] }
+              : 0, // ✅ single field
+          },
+        },
+        {
+          $addFields: {
+            score: {
+              $add: [
+                { $multiply: ["$dietMatches", 2] },
+                { $multiply: ["$goalMatch", 3] },
+              ],
+            },
+          },
+        },
+        { $sort: { score: -1, createdAt: -1 } },
+        { $limit: 12 },
+      ]);
 
-    res.json({ items });
+      // If everything scored 0, fall back to recent actives
+      const hasPositive = items.some((p) => (p.score ?? 0) > 0);
+      if (!hasPositive) {
+        items = await MealPlan.find({ isActive: true })
+          .sort({ createdAt: -1 })
+          .limit(12)
+          .lean();
+      }
+    } else {
+      // No profile signals → return recent
+      items = await MealPlan.find({ isActive: true })
+        .sort({ createdAt: -1 })
+        .limit(12)
+        .lean();
+    }
+
+    return res.json({ items, profileSignals: { dietaryPreferences, goal } });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    return res.status(500).json({ message: err.message });
   }
 };
 
@@ -105,20 +180,13 @@ exports.deleteMealPlan = async (req, res) => {
 };
 
 // Suggested for the logged-in user (scored matching)
-// computes a score for each meal plan:
-
-// +2 per matching diet tag
-
-// +3 if goal matches
-
-// Sort by score desc, createdAt desc
-
-// If nothing matches, gracefully fallback to the most recent active plans.
 exports.suggestedMealPlans = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // Load user to find the active profile pointer (could be ObjectId or embedded doc)
+    // 1) Resolve active profile robustly:
+    //    - if user.profile pointer exists, prefer that
+    //    - otherwise, fall back to the user's latest isActive:true profile
     const user = await User.findById(userId).select("profile").lean();
 
     let activeProfile = null;
@@ -127,32 +195,60 @@ exports.suggestedMealPlans = async (req, res) => {
         typeof user.profile === "object" && user.profile._id
           ? user.profile._id
           : user.profile;
-      // Fetch fresh profile from Profiles collection
       activeProfile = await Profile.findOne({
         _id: activeId,
         user: userId,
       }).lean();
     }
+    if (!activeProfile) {
+      activeProfile = await Profile.findOne({ user: userId, isActive: true })
+        .sort({ updatedAt: -1, createdAt: -1 })
+        .lean();
+    }
 
+    // 2) Extract match signals
     const dietaryPreferences = Array.isArray(activeProfile?.dietaryPreferences)
-      ? activeProfile.dietaryPreferences
+      ? activeProfile.dietaryPreferences.map(String) || []
       : [];
     const goal = activeProfile?.goal || null;
 
-    // If we have prefs/goal, run a scored aggregation
-    const hasSignals = dietaryPreferences.length > 0 || !!goal;
+    // 3) Build base $match (always active plans)
+    const baseMatch = { isActive: true };
 
-    let items = [];
-    if (hasSignals) {
-      // Use aggregation to compute score per plan
+    // 4) Hard FILTER by diet if any preferences exist (require all tags)
+    //    e.g. vegan profile => only meal plans whose dietTags include 'vegan'
+    //    If you prefer "any of" instead of "all of", switch $all to $in.
+    let hardMatch = { ...baseMatch };
+    if (dietaryPreferences.length > 0) {
+      hardMatch.dietTags = { $all: dietaryPreferences };
+    }
+
+    // 5) Try strict: diet must match all tags; then score by goalType match
+    let items = await MealPlan.aggregate([
+      { $match: hardMatch },
+      {
+        $addFields: {
+          goalMatch: goal ? { $cond: [{ $eq: ["$goalType", goal] }, 1, 0] } : 0,
+        },
+      },
+      { $sort: { goalMatch: -1, createdAt: -1 } },
+      { $limit: 12 },
+    ]);
+
+    // 6) If nothing found and we had diet prefs, relax to "any tag overlaps"
+    if (items.length === 0 && dietaryPreferences.length > 0) {
       items = await MealPlan.aggregate([
-        { $match: { isActive: true } },
+        {
+          $match: {
+            ...baseMatch,
+            dietTags: { $in: dietaryPreferences },
+          },
+        },
         {
           $addFields: {
-            dietMatches: {
-              $size: {
-                $setIntersection: ["$dietTags", dietaryPreferences],
-              },
+            // bonus: count overlaps to rank better matches higher
+            dietOverlap: {
+              $size: { $setIntersection: ["$dietTags", dietaryPreferences] },
             },
             goalMatch: goal
               ? { $cond: [{ $eq: ["$goalType", goal] }, 1, 0] }
@@ -163,33 +259,33 @@ exports.suggestedMealPlans = async (req, res) => {
           $addFields: {
             score: {
               $add: [
-                { $multiply: ["$dietMatches", 2] },
+                { $multiply: ["$dietOverlap", 2] },
                 { $multiply: ["$goalMatch", 3] },
               ],
             },
           },
         },
-        // Prefer plans with any score; if all zero, we'll fallback
         { $sort: { score: -1, createdAt: -1 } },
         { $limit: 12 },
       ]);
-      // If all scored results are zero or empty, fallback to recents
-      const hasPositive = items.some((p) => (p.score ?? 0) > 0);
-      if (!hasPositive) {
-        items = await MealPlan.find({ isActive: true })
-          .sort({ createdAt: -1 })
-          .limit(12)
-          .lean();
-      }
-    } else {
-      // No profile signals → just return recent plans
-      items = await MealPlan.find({ isActive: true })
+    }
+
+    // 7) Final fallback (no prefs or still empty): just recent active plans
+    if (items.length === 0) {
+      items = await MealPlan.find(baseMatch)
         .sort({ createdAt: -1 })
         .limit(12)
         .lean();
     }
 
-    return res.json({ items, profileSignals: { dietaryPreferences, goal } });
+    return res.json({
+      items,
+      profileSignals: {
+        dietaryPreferences,
+        goal,
+        profileId: activeProfile?._id || null,
+      },
+    });
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
