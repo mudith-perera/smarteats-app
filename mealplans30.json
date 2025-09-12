@@ -1,0 +1,454 @@
+[
+  {
+    "title": "Grilled Lemon Herb Chicken #1",
+    "description": "Light yet filling, perfect for active lifestyles.",
+    "calories": 416,
+    "protein": 22,
+    "fat": 20,
+    "carbs": 37,
+    "dietTags": [
+      "vegetarian",
+      "kosher"
+    ],
+    "goalType": "lose_weight",
+    "isActive": true,
+    "createdAt": "2025-09-12T00:12:42.027504Z",
+    "updatedAt": "2025-09-12T00:12:42.027504Z"
+  },
+  {
+    "title": "Vegan Quinoa Salad #2",
+    "description": "A hearty dish with bold spices and fresh herbs.",
+    "calories": 637,
+    "protein": 37,
+    "fat": 17,
+    "carbs": 84,
+    "dietTags": [],
+    "goalType": "maintain",
+    "isActive": true,
+    "createdAt": "2025-09-12T00:12:42.027504Z",
+    "updatedAt": "2025-09-12T00:12:42.027504Z"
+  },
+  {
+    "title": "Beef & Broccoli Stir-Fry #3",
+    "description": "A hearty dish with bold spices and fresh herbs.",
+    "calories": 384,
+    "protein": 30,
+    "fat": 16,
+    "carbs": 30,
+    "dietTags": [
+      "vegan"
+    ],
+    "goalType": "lose_weight",
+    "isActive": true,
+    "createdAt": "2025-09-12T00:12:42.027504Z",
+    "updatedAt": "2025-09-12T00:12:42.027504Z"
+  },
+  {
+    "title": "Greek Yogurt Parfait #4",
+    "description": "Light yet filling, perfect for active lifestyles.",
+    "calories": 461,
+    "protein": 22,
+    "fat": 17,
+    "carbs": 55,
+    "dietTags": [],
+    "goalType": "lose_weight",
+    "isActive": true,
+    "createdAt": "2025-09-12T00:12:42.027504Z",
+    "updatedAt": "2025-09-12T00:12:42.027504Z"
+  },
+  {
+    "title": "Chickpea Curry #5",
+    "description": "Balanced meal with proteins, carbs and healthy fats.",
+    "calories": 429,
+    "protein": 34,
+    "fat": 9,
+    "carbs": 53,
+    "dietTags": [],
+    "goalType": "lose_weight",
+    "isActive": true,
+    "createdAt": "2025-09-12T00:12:42.027504Z",
+    "updatedAt": "2025-09-12T00:12:42.027504Z"
+  },
+  {
+    "title": "Salmon Power Bowl #6",
+    "description": "Balanced meal with proteins, carbs and healthy fats.",
+    "calories": 635,
+    "protein": 34,
+    "fat": 27,
+    "carbs": 64,
+    "dietTags": [
+      "dairy_free",
+      "nut_free"
+    ],
+    "goalType": "gain_muscle",
+    "isActive": true,
+    "createdAt": "2025-09-12T00:12:42.027504Z",
+    "updatedAt": "2025-09-12T00:12:42.027504Z"
+  },
+  {
+    "title": "Falafel Wrap #7",
+    "description": "A hearty dish with bold spices and fresh herbs.",
+    "calories": 564,
+    "protein": 35,
+    "fat": 12,
+    "carbs": 79,
+    "dietTags": [
+      "nut_free",
+      "dairy_free"
+    ],
+    "goalType": "maintain",
+    "isActive": true,
+    "createdAt": "2025-09-12T00:12:42.027504Z",
+    "updatedAt": "2025-09-12T00:12:42.027504Z"
+  },
+  {
+    "title": "Turkey Chili #8",
+    "description": "Comfort food reimagined with a healthy twist.",
+    "calories": 504,
+    "protein": 40,
+    "fat": 16,
+    "carbs": 50,
+    "dietTags": [
+      "vegetarian",
+      "dairy_free"
+    ],
+    "goalType": "lose_weight",
+    "isActive": true,
+    "createdAt": "2025-09-12T00:12:42.027504Z",
+    "updatedAt": "2025-09-12T00:12:42.027504Z"
+  },
+  {
+    "title": "Paneer Tikka Bowl #9",
+    "description": "Comfort food reimagined with a healthy twist.",
+    "calories": 729,
+    "protein": 43,
+    "fat": 25,
+    "carbs": 83,
+    "dietTags": [
+      "nut_free",
+      "halal",
+      "dairy_free"
+    ],
+    "goalType": "gain_muscle",
+    "isActive": true,
+    "createdAt": "2025-09-12T00:12:42.027504Z",
+    "updatedAt": "2025-09-12T00:12:42.027504Z"
+  },
+  {
+    "title": "Avocado Toast Deluxe #10",
+    "description": "Macro-friendly meal to support fitness goals.",
+    "calories": 628,
+    "protein": 21,
+    "fat": 24,
+    "carbs": 82,
+    "dietTags": [
+      "halal"
+    ],
+    "goalType": "maintain",
+    "isActive": true,
+    "createdAt": "2025-09-12T00:12:42.027504Z",
+    "updatedAt": "2025-09-12T00:12:42.027504Z"
+  },
+  {
+    "title": "Spicy Black Bean Burrito #11",
+    "description": "A hearty dish with bold spices and fresh herbs.",
+    "calories": 474,
+    "protein": 28,
+    "fat": 10,
+    "carbs": 68,
+    "dietTags": [
+      "nut_free",
+      "dairy_free"
+    ],
+    "goalType": "lose_weight",
+    "isActive": true,
+    "createdAt": "2025-09-12T00:12:42.027504Z",
+    "updatedAt": "2025-09-12T00:12:42.027504Z"
+  },
+  {
+    "title": "Garlic Butter Shrimp #12",
+    "description": "Comfort food reimagined with a healthy twist.",
+    "calories": 534,
+    "protein": 34,
+    "fat": 14,
+    "carbs": 68,
+    "dietTags": [
+      "vegetarian",
+      "vegan"
+    ],
+    "goalType": "lose_weight",
+    "isActive": true,
+    "createdAt": "2025-09-12T00:12:42.027504Z",
+    "updatedAt": "2025-09-12T00:12:42.027504Z"
+  },
+  {
+    "title": "Miso Glazed Eggplant #13",
+    "description": "A hearty dish with bold spices and fresh herbs.",
+    "calories": 621,
+    "protein": 56,
+    "fat": 25,
+    "carbs": 43,
+    "dietTags": [],
+    "goalType": "gain_muscle",
+    "isActive": true,
+    "createdAt": "2025-09-12T00:12:42.027504Z",
+    "updatedAt": "2025-09-12T00:12:42.027504Z"
+  },
+  {
+    "title": "Zesty Turkey Meatballs #14",
+    "description": "Comfort food reimagined with a healthy twist.",
+    "calories": 556,
+    "protein": 32,
+    "fat": 20,
+    "carbs": 62,
+    "dietTags": [],
+    "goalType": "maintain",
+    "isActive": true,
+    "createdAt": "2025-09-12T00:12:42.027504Z",
+    "updatedAt": "2025-09-12T00:12:42.027504Z"
+  },
+  {
+    "title": "Moroccan Lentil Tagine #15",
+    "description": "Macro-friendly meal to support fitness goals.",
+    "calories": 671,
+    "protein": 45,
+    "fat": 27,
+    "carbs": 62,
+    "dietTags": [
+      "nut_free"
+    ],
+    "goalType": "gain_muscle",
+    "isActive": true,
+    "createdAt": "2025-09-12T00:12:42.027504Z",
+    "updatedAt": "2025-09-12T00:12:42.027504Z"
+  },
+  {
+    "title": "Tofu Poke Bowl #16",
+    "description": "Light yet filling, perfect for active lifestyles.",
+    "calories": 544,
+    "protein": 24,
+    "fat": 20,
+    "carbs": 67,
+    "dietTags": [
+      "kosher",
+      "dairy_free",
+      "vegetarian"
+    ],
+    "goalType": "maintain",
+    "isActive": true,
+    "createdAt": "2025-09-12T00:12:42.027504Z",
+    "updatedAt": "2025-09-12T00:12:42.027504Z"
+  },
+  {
+    "title": "Kimchi Fried Rice #17",
+    "description": "Balanced meal with proteins, carbs and healthy fats.",
+    "calories": 383,
+    "protein": 34,
+    "fat": 11,
+    "carbs": 37,
+    "dietTags": [
+      "kosher",
+      "gluten_free"
+    ],
+    "goalType": "lose_weight",
+    "isActive": true,
+    "createdAt": "2025-09-12T00:12:42.027504Z",
+    "updatedAt": "2025-09-12T00:12:42.027504Z"
+  },
+  {
+    "title": "Caprese Farro Bowl #18",
+    "description": "Macro-friendly meal to support fitness goals.",
+    "calories": 669,
+    "protein": 60,
+    "fat": 21,
+    "carbs": 60,
+    "dietTags": [
+      "vegetarian",
+      "kosher",
+      "nut_free"
+    ],
+    "goalType": "gain_muscle",
+    "isActive": true,
+    "createdAt": "2025-09-12T00:12:42.027504Z",
+    "updatedAt": "2025-09-12T00:12:42.027504Z"
+  },
+  {
+    "title": "Tuscan White Bean Soup #19",
+    "description": "Balanced meal with proteins, carbs and healthy fats.",
+    "calories": 479,
+    "protein": 31,
+    "fat": 19,
+    "carbs": 46,
+    "dietTags": [],
+    "goalType": "lose_weight",
+    "isActive": true,
+    "createdAt": "2025-09-12T00:12:42.027504Z",
+    "updatedAt": "2025-09-12T00:12:42.027504Z"
+  },
+  {
+    "title": "Peanut Soba Noodles #20",
+    "description": "Light yet filling, perfect for active lifestyles.",
+    "calories": 500,
+    "protein": 45,
+    "fat": 20,
+    "carbs": 35,
+    "dietTags": [],
+    "goalType": "maintain",
+    "isActive": true,
+    "createdAt": "2025-09-12T00:12:42.027504Z",
+    "updatedAt": "2025-09-12T00:12:42.027504Z"
+  },
+  {
+    "title": "Pumpkin Chickpea Curry #21",
+    "description": "Balanced meal with proteins, carbs and healthy fats.",
+    "calories": 777,
+    "protein": 50,
+    "fat": 21,
+    "carbs": 97,
+    "dietTags": [
+      "gluten_free",
+      "dairy_free"
+    ],
+    "goalType": "gain_muscle",
+    "isActive": true,
+    "createdAt": "2025-09-12T00:12:42.027504Z",
+    "updatedAt": "2025-09-12T00:12:42.027504Z"
+  },
+  {
+    "title": "Veggie Pad Thai #22",
+    "description": "Light yet filling, perfect for active lifestyles.",
+    "calories": 541,
+    "protein": 37,
+    "fat": 13,
+    "carbs": 69,
+    "dietTags": [
+      "vegetarian",
+      "halal"
+    ],
+    "goalType": "lose_weight",
+    "isActive": true,
+    "createdAt": "2025-09-12T00:12:42.027504Z",
+    "updatedAt": "2025-09-12T00:12:42.027504Z"
+  },
+  {
+    "title": "Butter Chicken (Light) #23",
+    "description": "Balanced meal with proteins, carbs and healthy fats.",
+    "calories": 845,
+    "protein": 35,
+    "fat": 21,
+    "carbs": 129,
+    "dietTags": [
+      "gluten_free"
+    ],
+    "goalType": "gain_muscle",
+    "isActive": true,
+    "createdAt": "2025-09-12T00:12:42.027504Z",
+    "updatedAt": "2025-09-12T00:12:42.027504Z"
+  },
+  {
+    "title": "Spinach Feta Frittata #24",
+    "description": "Macro-friendly meal to support fitness goals.",
+    "calories": 660,
+    "protein": 53,
+    "fat": 16,
+    "carbs": 76,
+    "dietTags": [],
+    "goalType": "gain_muscle",
+    "isActive": true,
+    "createdAt": "2025-09-12T00:12:42.027504Z",
+    "updatedAt": "2025-09-12T00:12:42.027504Z"
+  },
+  {
+    "title": "Balsamic Mushroom Pasta #25",
+    "description": "Rich in plant-based protein and fiber for sustained energy.",
+    "calories": 699,
+    "protein": 47,
+    "fat": 19,
+    "carbs": 85,
+    "dietTags": [
+      "kosher",
+      "dairy_free"
+    ],
+    "goalType": "gain_muscle",
+    "isActive": true,
+    "createdAt": "2025-09-12T00:12:42.027504Z",
+    "updatedAt": "2025-09-12T00:12:42.027504Z"
+  },
+  {
+    "title": "Shakshuka #26",
+    "description": "Comfort food reimagined with a healthy twist.",
+    "calories": 529,
+    "protein": 37,
+    "fat": 17,
+    "carbs": 57,
+    "dietTags": [],
+    "goalType": "maintain",
+    "isActive": true,
+    "createdAt": "2025-09-12T00:12:42.027504Z",
+    "updatedAt": "2025-09-12T00:12:42.027504Z"
+  },
+  {
+    "title": "BBQ Pulled Jackfruit #27",
+    "description": "Light yet filling, perfect for active lifestyles.",
+    "calories": 640,
+    "protein": 55,
+    "fat": 24,
+    "carbs": 51,
+    "dietTags": [
+      "vegetarian",
+      "halal",
+      "vegan"
+    ],
+    "goalType": "gain_muscle",
+    "isActive": true,
+    "createdAt": "2025-09-12T00:12:42.027504Z",
+    "updatedAt": "2025-09-12T00:12:42.027504Z"
+  },
+  {
+    "title": "Mango Chicken Salad #28",
+    "description": "Light yet filling, perfect for active lifestyles.",
+    "calories": 669,
+    "protein": 20,
+    "fat": 17,
+    "carbs": 109,
+    "dietTags": [
+      "gluten_free",
+      "dairy_free",
+      "vegetarian"
+    ],
+    "goalType": "maintain",
+    "isActive": true,
+    "createdAt": "2025-09-12T00:12:42.027504Z",
+    "updatedAt": "2025-09-12T00:12:42.027504Z"
+  },
+  {
+    "title": "Soba Tofu Salad #29",
+    "description": "Comfort food reimagined with a healthy twist.",
+    "calories": 480,
+    "protein": 30,
+    "fat": 16,
+    "carbs": 54,
+    "dietTags": [
+      "gluten_free"
+    ],
+    "goalType": "lose_weight",
+    "isActive": true,
+    "createdAt": "2025-09-12T00:12:42.027504Z",
+    "updatedAt": "2025-09-12T00:12:42.027504Z"
+  },
+  {
+    "title": "Turkey Chili Supreme #30",
+    "description": "A hearty dish with bold spices and fresh herbs.",
+    "calories": 626,
+    "protein": 47,
+    "fat": 26,
+    "carbs": 51,
+    "dietTags": [
+      "nut_free"
+    ],
+    "goalType": "gain_muscle",
+    "isActive": true,
+    "createdAt": "2025-09-12T00:12:42.027504Z",
+    "updatedAt": "2025-09-12T00:12:42.027504Z"
+  }
+]

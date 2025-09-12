@@ -18,8 +18,15 @@ After cloning the project
    PORT=5001
    ```
 3. Run server:
+
    ```bash
    nodemon backend/server.js
+   ```
+
+4. Add sample data by running
+
+   ```mongoimport --db smarteats --collection mealplans --file mealplans30.json --jsonArray
+
    ```
 
 ## Frontend
