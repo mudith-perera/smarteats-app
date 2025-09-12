@@ -7,9 +7,6 @@ const userRoutes = require("./routes/userRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const mealPlanRoutes = require("./routes/mealPlanRoutes");
 const mealRoutes = require("./routes/mealRoutes");
-
-
-
 const bcrypt = require("bcryptjs");
 const User = require("./models/User");
 

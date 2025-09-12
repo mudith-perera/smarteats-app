@@ -5,11 +5,8 @@
     <meta charset="UTF-8" />
     <title>Admin Dashboard — SmartEats</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- Global styles (same as user dashboard) -->
     <link rel="stylesheet" href="./styles.css" />
-    <!-- Page-scoped polish to match dashboard components -->
     <style>
-        /* Table styled like cards, using your design tokens */
         .admin-grid {
             display: grid;
             grid-template-columns: 1fr;
@@ -56,7 +53,6 @@
         .table-card {
             overflow: hidden;
             padding: 0;
-            /* table header can sit flush with borders */
         }
 
         .table-wrap {
@@ -250,10 +246,8 @@
     <script src="./js/main.js"></script>
     <script src="./js/admin.js"></script>
     <script>
-        // Small helpers to align look & behaviour
         function logout() { localStorage.removeItem('token'); location.href = 'index.html'; }
 
-        // Optional: replace role text with a colored pill (works with your existing renderer if you add this)
         function renderRolePill(role) {
             const cls = role === 'admin' ? 'pill admin' : 'pill user';
             return `<span class="${cls}">${role || 'user'}</span>`;

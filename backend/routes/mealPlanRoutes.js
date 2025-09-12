@@ -15,7 +15,7 @@ const {
 const router = express.Router();
 
 // Lists
-router.get("/", listMealPlans); // public list
+router.get("/", listMealPlans);
 router.get("/suggested", verifyToken, suggestedMealPlans);
 router.get("/:id", getMealPlan);
 

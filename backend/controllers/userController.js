@@ -71,7 +71,6 @@ exports.createProfile = async (req, res) => {
     const { name, age, weight, height, dietaryPreferences, goal, unitSystem } =
       req.body;
 
-    // 1) Create a Profile with the required `user` field
     const profile = await Profile.create({
       user: userId,
       name,
@@ -83,7 +82,6 @@ exports.createProfile = async (req, res) => {
       unitSystem,
     });
 
-    // 2) Store the *embedded* profile on the user document (NOT an id)
     const user = await User.findByIdAndUpdate(
       userId,
       { profile },
@@ -128,7 +126,7 @@ exports.setActiveProfile = async (req, res) => {
     // Validate profile belongs to user
     const profile = await Profile.findOne({ _id: profileId, user: userId });
     if (!profile) return res.status(404).json({ message: "Profile not found" });
-    // Update user's embedded profile
+
     const user = await User.findByIdAndUpdate(
       userId,
       { profile: profile },
@@ -136,12 +134,10 @@ exports.setActiveProfile = async (req, res) => {
     ).select("-password");
 
     if (!user) return res.status(404).json({ message: "User not found" });
-    return res
-      .status(200)
-      .json({
-        message: "Active profile set successfully",
-        profile: user.profile,
-      });
+    return res.status(200).json({
+      message: "Active profile set successfully",
+      profile: user.profile,
+    });
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }

@@ -69,10 +69,9 @@ exports.listMealPlans = async (req, res) => {
 exports.suggestedMealPlans = async (req, res) => {
   try {
     const userId = req.user.id;
-
-    // Resolve latest active profile from the DB (handles objectId or embedded)
     const user = await User.findById(userId).select("profile").lean();
     let activeProfile = null;
+
     if (user?.profile) {
       const activeId =
         typeof user.profile === "object" && user.profile._id
@@ -93,7 +92,6 @@ exports.suggestedMealPlans = async (req, res) => {
 
     let items = [];
     if (hasSignals) {
-      // Score: +2 per diet tag match, +3 if goalType matches
       items = await MealPlan.aggregate([
         { $match: { isActive: true } },
         {
@@ -105,7 +103,7 @@ exports.suggestedMealPlans = async (req, res) => {
             },
             goalMatch: goal
               ? { $cond: [{ $eq: ["$goalType", goal] }, 1, 0] }
-              : 0, // ✅ single field
+              : 0,
           },
         },
         {
@@ -183,10 +181,6 @@ exports.deleteMealPlan = async (req, res) => {
 exports.suggestedMealPlans = async (req, res) => {
   try {
     const userId = req.user.id;
-
-    // 1) Resolve active profile robustly:
-    //    - if user.profile pointer exists, prefer that
-    //    - otherwise, fall back to the user's latest isActive:true profile
     const user = await User.findById(userId).select("profile").lean();
 
     let activeProfile = null;
@@ -206,24 +200,18 @@ exports.suggestedMealPlans = async (req, res) => {
         .lean();
     }
 
-    // 2) Extract match signals
     const dietaryPreferences = Array.isArray(activeProfile?.dietaryPreferences)
       ? activeProfile.dietaryPreferences.map(String) || []
       : [];
     const goal = activeProfile?.goal || null;
 
-    // 3) Build base $match (always active plans)
     const baseMatch = { isActive: true };
 
-    // 4) Hard FILTER by diet if any preferences exist (require all tags)
-    //    e.g. vegan profile => only meal plans whose dietTags include 'vegan'
-    //    If you prefer "any of" instead of "all of", switch $all to $in.
     let hardMatch = { ...baseMatch };
     if (dietaryPreferences.length > 0) {
       hardMatch.dietTags = { $all: dietaryPreferences };
     }
 
-    // 5) Try strict: diet must match all tags; then score by goalType match
     let items = await MealPlan.aggregate([
       { $match: hardMatch },
       {
@@ -235,7 +223,6 @@ exports.suggestedMealPlans = async (req, res) => {
       { $limit: 12 },
     ]);
 
-    // 6) If nothing found and we had diet prefs, relax to "any tag overlaps"
     if (items.length === 0 && dietaryPreferences.length > 0) {
       items = await MealPlan.aggregate([
         {
@@ -246,7 +233,6 @@ exports.suggestedMealPlans = async (req, res) => {
         },
         {
           $addFields: {
-            // bonus: count overlaps to rank better matches higher
             dietOverlap: {
               $size: { $setIntersection: ["$dietTags", dietaryPreferences] },
             },
@@ -270,7 +256,6 @@ exports.suggestedMealPlans = async (req, res) => {
       ]);
     }
 
-    // 7) Final fallback (no prefs or still empty): just recent active plans
     if (items.length === 0) {
       items = await MealPlan.find(baseMatch)
         .sort({ createdAt: -1 })

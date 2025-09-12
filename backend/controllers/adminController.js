@@ -1,5 +1,5 @@
 const User = require("../models/User");
-const bcrypt = require("bcryptjs"); // if you use it elsewhere
+const bcrypt = require("bcryptjs");
 
 // GET /api/admin?q=&page=&limit=
 exports.getUsers = async (req, res) => {
@@ -46,10 +46,9 @@ exports.getUsers = async (req, res) => {
 exports.updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-
-    // Only allow a safe subset of fields to be updated by admin
     const { firstName, lastName, role, isActive } = req.body;
     const patch = {};
+
     if (firstName !== undefined) patch.firstName = firstName;
     if (lastName !== undefined) patch.lastName = lastName;
     if (role !== undefined) patch.role = role; // 'user' | 'admin'
