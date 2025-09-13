@@ -442,10 +442,21 @@ select:focus {
 }
 
 /* Footer */
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  margin: 0;
+}
+
+main {
+  flex: 1;
+}
+
 .footer {
   border-top: 1px solid var(--border);
   color: var(--muted);
   text-align: center;
   padding: 2rem 1rem 3rem;
-  margin-top: 3rem;
+  margin-top: auto; 
 }
