@@ -151,25 +151,25 @@
 
 <body>
   <header class="navbar">
-        <div class="navbar-inner container">
-            <div class="brand">
-                <span class="brand-badge" aria-hidden="true"></span>
-                <a href="index.html" class="nav-link" style="padding:0;">SmartEats</a>
-            </div>
-            <nav>
-                <button class="menu-toggle" aria-label="Toggle menu" id="menuBtn">☰</button>
-                <ul id="menu">
-                    <li id="homeBtn"><a class="nav-link" href="index.html">Home</a></li>
-                    <li id="dashboardBtn"><a class="nav-link" href="dashboard.html">Dashboard</a></li>
-                    <li id="mealsBtn"><a class="nav-link" href="mealPlans.html">Meals</a></li>
-                    <li id="profileBtn"><a class="nav-link" href="profileCard.html">Profiles</a></li>
-                    <li id="loginBtn"><a class="nav-link" href="login.html">Login</a></li>
-                    <li id="registerBtn"><a class="nav-link" href="register.html">Register</a></li>
-                    <li id="logoutBtn"><a class="nav-link" href="#" onclick="logout()">Logout</a></li>
-                </ul>
-            </nav>
-        </div>
-    </header>
+    <div class="navbar-inner container">
+      <div class="brand">
+        <span class="brand-badge" aria-hidden="true"></span>
+        <a href="index.html" class="nav-link" style="padding:0;">SmartEats</a>
+      </div>
+      <nav>
+        <button class="menu-toggle" aria-label="Toggle menu" id="menuBtn">☰</button>
+        <ul id="menu">
+          <li id="homeBtn"><a class="nav-link" href="index.html">Home</a></li>
+          <li id="dashboardBtn"><a class="nav-link" href="dashboard.html">Dashboard</a></li>
+          <li id="mealsBtn"><a class="nav-link" href="mealPlans.html">Meals</a></li>
+          <li id="profileBtn"><a class="nav-link" href="profileCard.html">Profiles</a></li>
+          <li id="loginBtn"><a class="nav-link" href="login.html">Login</a></li>
+          <li id="registerBtn"><a class="nav-link" href="register.html">Register</a></li>
+          <li id="logoutBtn"><a class="nav-link" href="#" onclick="logout()">Logout</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
 
   <main class="container">
     <div class="tabs">
@@ -529,6 +529,196 @@
               text: xhr.responseJSON?.message || 'Something went wrong'
             });
           },
+        });
+      });
+    })();
+
+    // Update profile: load selected profile data into form
+    (function addUpdateSelectListener() {
+      const updateSelect = document.getElementById('updateProfileSelect');
+      if (!updateSelect) return;
+
+      updateSelect.addEventListener('change', async function () {
+        const profileId = this.value;
+        if (!profileId) return;
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Not logged in',
+            text: 'Please log in to update your profile.'
+          }).then(() => (window.location.href = 'login.html'));
+          return;
+        }
+
+        // Try to fetch a single profile first; fall back to list search if needed
+        try {
+          const profile = await fetchSingleProfile(profileId, token);
+          if (profile) fillUpdateForm(profile);
+        } catch (err) {
+          console.error(err);
+          Swal.fire({
+            icon: 'error',
+            title: 'Could not load profile',
+            text: 'Please try again.'
+          });
+        }
+      });
+
+      async function fetchSingleProfile(profileId, token) {
+        try {
+          $.ajax({
+            url: '/api/users/me/profiles/' + profileId,
+            method: 'GET',
+            headers: { Authorization: 'Bearer ' + token },
+            success: function (res) {
+              if (res && res.profile) {
+                fillUpdateForm(res.profile);
+              } else {
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Profile not found',
+                  text: 'The selected profile could not be found.'
+                });
+              }
+            },
+            error: function (xhr) {
+              Swal.fire({
+                icon: 'error',
+                title: 'Error fetching profile',
+                text: xhr.responseJSON?.message || 'Something went wrong'
+              });
+            },
+          });
+        } catch (e) {
+          console.error('Fetch single profile failed:', e);
+        }
+      }
+
+      /**
+       * Populate the Update form with the profile's values.
+       */
+      function fillUpdateForm(profile) {
+        const unitEl = document.getElementById('updateUnitSystem');
+        const ageEl = document.getElementById('updateAge');
+        const weightEl = document.getElementById('updateWeight');
+        const heightEl = document.getElementById('updateHeight');
+        const goalEl = document.getElementById('updateGoal');
+
+        // Set simple fields (guard against undefined)
+        if (unitEl && profile.unitSystem) unitEl.value = profile.unitSystem;
+        if (ageEl) ageEl.value = profile.age ?? '';
+        if (weightEl) weightEl.value = profile.weight ?? '';
+        if (heightEl) heightEl.value = profile.height ?? '';
+        if (goalEl && profile.goal) goalEl.value = profile.goal;
+
+        // Clear all dietary checkboxes first
+        const dietIds = [
+          'upd-diet-vegetarian',
+          'upd-diet-vegan',
+          'upd-diet-gluten_free',
+          'upd-diet-dairy_free',
+          'upd-diet-nut_free',
+          'upd-diet-halal',
+          'upd-diet-kosher'
+        ];
+        dietIds.forEach(id => {
+          const cb = document.getElementById(id);
+          if (cb) cb.checked = false;
+        });
+
+        // Tick only the ones in profile.dietaryPreferences (expects array of values)
+        const prefs = Array.isArray(profile.dietaryPreferences) ? profile.dietaryPreferences : [];
+        const valueToId = {
+          vegetarian: 'upd-diet-vegetarian',
+          vegan: 'upd-diet-vegan',
+          gluten_free: 'upd-diet-gluten_free',
+          dairy_free: 'upd-diet-dairy_free',
+          nut_free: 'upd-diet-nut_free',
+          halal: 'upd-diet-halal',
+          kosher: 'upd-diet-kosher'
+        };
+        prefs.forEach(val => {
+          const cbId = valueToId[val];
+          const cb = cbId ? document.getElementById(cbId) : null;
+          if (cb) cb.checked = true;
+        });
+      }
+    })();
+
+    (function setupUpdateProfileHandler() {
+      const $form = $('#updateProfileForm');
+      const $select = $('#updateProfileSelect');
+      const $tab = $('#tab-update');
+
+      if (!$form.length || !$select.length) return;
+
+      $form.on('submit', function (e) {
+        e.preventDefault();
+        if ($tab.length) $tab.prop('checked', true);
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+          Swal.fire({ icon: 'error', title: 'Not logged in', text: 'Please log in to update your profile.' })
+            .then(() => (window.location.href = 'login.html'));
+          return;
+        }
+
+        const profileId = $select.val();
+        if (!profileId) {
+          Swal.fire({ icon: 'warning', title: 'No profile selected', text: 'Please choose a profile to update.' });
+          return;
+        }
+
+        // Collect values
+        const unitSystem = $('#updateUnitSystem').val();
+        const age = $('#updateAge').val();
+        const weight = $('#updateWeight').val();
+        const height = $('#updateHeight').val();
+        const goal = $('#updateGoal').val();
+
+        const dietaryPreferences = [
+          ['#upd-diet-vegetarian', 'vegetarian'],
+          ['#upd-diet-vegan', 'vegan'],
+          ['#upd-diet-gluten_free', 'gluten_free'],
+          ['#upd-diet-dairy_free', 'dairy_free'],
+          ['#upd-diet-nut_free', 'nut_free'],
+          ['#upd-diet-halal', 'halal'],
+          ['#upd-diet-kosher', 'kosher'],
+        ].filter(([id]) => $(id).is(':checked'))
+          .map(([, val]) => val);
+
+        // Build minimal payload (skip empty)
+        const payload = {};
+        if (unitSystem) payload.unitSystem = unitSystem;
+        if (age !== '' && age != null) payload.age = Number(age);
+        if (weight !== '' && weight != null) payload.weight = Number(weight);
+        if (height !== '' && height != null) payload.height = Number(height);
+        if (goal) payload.goal = goal;
+        payload.dietaryPreferences = dietaryPreferences; // send array (can be empty)
+
+        if (Object.keys(payload).length === 1 && Array.isArray(payload.dietaryPreferences) && payload.dietaryPreferences.length === 0) {
+          Swal.fire({ icon: 'info', title: 'Nothing to update', text: 'Please change at least one field.' });
+          return;
+        }
+
+        $.ajax({
+          url: '/api/users/me/profiles/' + encodeURIComponent(profileId),
+          method: 'PUT',
+          headers: { Authorization: 'Bearer ' + token },
+          contentType: 'application/json',
+          data: JSON.stringify(payload),
+          success: function () {
+            if ($tab.length) $tab.prop('checked', true);
+            Swal.fire({ icon: 'success', title: 'Profile updated', text: 'Your changes have been saved.' })
+              .then(() => window.location.href = 'dashboard.html');
+          },
+          error: function (xhr) {
+            if ($tab.length) $tab.prop('checked', true);
+            const msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Something went wrong.';
+            Swal.fire({ icon: 'error', title: 'Update failed', text: msg });
+          }
         });
       });
     })();

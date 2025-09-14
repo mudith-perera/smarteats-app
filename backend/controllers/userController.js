@@ -118,6 +118,43 @@ exports.getProfiles = async (req, res) => {
   }
 };
 
+// Get Single Profile
+exports.getProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { profileId } = req.params;
+
+    // Validate profile belongs to user
+    const profile = await Profile.findOne({ _id: profileId, user: userId });
+    if (!profile) return res.status(404).json({ message: "Profile not found" });
+
+    res.status(200).json({ profile });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// Update Profile
+exports.updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { profileId } = req.params;
+    const updates = req.body;
+
+    // Validate profile belongs to user
+    const profile = await Profile.findOne({ _id: profileId, user: userId });
+    if (!profile) return res.status(404).json({ message: "Profile not found" });
+
+    // Update profile fields
+    Object.assign(profile, updates);
+    await profile.save();
+
+    res.status(200).json({ message: "Profile updated successfully", profile });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 // Set Active Profile
 exports.setActiveProfile = async (req, res) => {
   try {
