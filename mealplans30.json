@@ -6,10 +6,7 @@
     "protein": 22,
     "fat": 20,
     "carbs": 37,
-    "dietTags": [
-      "vegetarian",
-      "kosher"
-    ],
+    "dietTags": ["vegetarian", "kosher"],
     "goalType": "lose_weight",
     "isActive": true,
     "createdAt": "2025-09-12T00:12:42.027504Z",
@@ -35,9 +32,7 @@
     "protein": 30,
     "fat": 16,
     "carbs": 30,
-    "dietTags": [
-      "vegan"
-    ],
+    "dietTags": ["vegan"],
     "goalType": "lose_weight",
     "isActive": true,
     "createdAt": "2025-09-12T00:12:42.027504Z",
@@ -76,10 +71,7 @@
     "protein": 34,
     "fat": 27,
     "carbs": 64,
-    "dietTags": [
-      "dairy_free",
-      "nut_free"
-    ],
+    "dietTags": ["dairy_free", "nut_free"],
     "goalType": "gain_muscle",
     "isActive": true,
     "createdAt": "2025-09-12T00:12:42.027504Z",
@@ -92,10 +84,7 @@
     "protein": 35,
     "fat": 12,
     "carbs": 79,
-    "dietTags": [
-      "nut_free",
-      "dairy_free"
-    ],
+    "dietTags": ["nut_free", "dairy_free"],
     "goalType": "maintain",
     "isActive": true,
     "createdAt": "2025-09-12T00:12:42.027504Z",
@@ -108,10 +97,7 @@
     "protein": 40,
     "fat": 16,
     "carbs": 50,
-    "dietTags": [
-      "vegetarian",
-      "dairy_free"
-    ],
+    "dietTags": ["vegetarian", "dairy_free"],
     "goalType": "lose_weight",
     "isActive": true,
     "createdAt": "2025-09-12T00:12:42.027504Z",
@@ -124,11 +110,7 @@
     "protein": 43,
     "fat": 25,
     "carbs": 83,
-    "dietTags": [
-      "nut_free",
-      "halal",
-      "dairy_free"
-    ],
+    "dietTags": ["nut_free", "halal", "dairy_free"],
     "goalType": "gain_muscle",
     "isActive": true,
     "createdAt": "2025-09-12T00:12:42.027504Z",
@@ -141,9 +123,7 @@
     "protein": 21,
     "fat": 24,
     "carbs": 82,
-    "dietTags": [
-      "halal"
-    ],
+    "dietTags": ["halal"],
     "goalType": "maintain",
     "isActive": true,
     "createdAt": "2025-09-12T00:12:42.027504Z",
@@ -156,10 +136,7 @@
     "protein": 28,
     "fat": 10,
     "carbs": 68,
-    "dietTags": [
-      "nut_free",
-      "dairy_free"
-    ],
+    "dietTags": ["nut_free", "dairy_free"],
     "goalType": "lose_weight",
     "isActive": true,
     "createdAt": "2025-09-12T00:12:42.027504Z",
@@ -172,10 +149,7 @@
     "protein": 34,
     "fat": 14,
     "carbs": 68,
-    "dietTags": [
-      "vegetarian",
-      "vegan"
-    ],
+    "dietTags": ["vegetarian", "vegan"],
     "goalType": "lose_weight",
     "isActive": true,
     "createdAt": "2025-09-12T00:12:42.027504Z",
@@ -214,9 +188,7 @@
     "protein": 45,
     "fat": 27,
     "carbs": 62,
-    "dietTags": [
-      "nut_free"
-    ],
+    "dietTags": ["nut_free"],
     "goalType": "gain_muscle",
     "isActive": true,
     "createdAt": "2025-09-12T00:12:42.027504Z",
@@ -229,11 +201,7 @@
     "protein": 24,
     "fat": 20,
     "carbs": 67,
-    "dietTags": [
-      "kosher",
-      "dairy_free",
-      "vegetarian"
-    ],
+    "dietTags": ["kosher", "dairy_free", "vegetarian"],
     "goalType": "maintain",
     "isActive": true,
     "createdAt": "2025-09-12T00:12:42.027504Z",
@@ -246,10 +214,7 @@
     "protein": 34,
     "fat": 11,
     "carbs": 37,
-    "dietTags": [
-      "kosher",
-      "gluten_free"
-    ],
+    "dietTags": ["kosher", "gluten_free"],
     "goalType": "lose_weight",
     "isActive": true,
     "createdAt": "2025-09-12T00:12:42.027504Z",
@@ -262,11 +227,7 @@
     "protein": 60,
     "fat": 21,
     "carbs": 60,
-    "dietTags": [
-      "vegetarian",
-      "kosher",
-      "nut_free"
-    ],
+    "dietTags": ["vegetarian", "kosher", "nut_free"],
     "goalType": "gain_muscle",
     "isActive": true,
     "createdAt": "2025-09-12T00:12:42.027504Z",
@@ -305,10 +266,7 @@
     "protein": 50,
     "fat": 21,
     "carbs": 97,
-    "dietTags": [
-      "gluten_free",
-      "dairy_free"
-    ],
+    "dietTags": ["gluten_free", "dairy_free"],
     "goalType": "gain_muscle",
     "isActive": true,
     "createdAt": "2025-09-12T00:12:42.027504Z",
@@ -321,10 +279,7 @@
     "protein": 37,
     "fat": 13,
     "carbs": 69,
-    "dietTags": [
-      "vegetarian",
-      "halal"
-    ],
+    "dietTags": ["vegetarian", "halal"],
     "goalType": "lose_weight",
     "isActive": true,
     "createdAt": "2025-09-12T00:12:42.027504Z",
@@ -337,9 +292,7 @@
     "protein": 35,
     "fat": 21,
     "carbs": 129,
-    "dietTags": [
-      "gluten_free"
-    ],
+    "dietTags": ["gluten_free"],
     "goalType": "gain_muscle",
     "isActive": true,
     "createdAt": "2025-09-12T00:12:42.027504Z",
@@ -365,10 +318,7 @@
     "protein": 47,
     "fat": 19,
     "carbs": 85,
-    "dietTags": [
-      "kosher",
-      "dairy_free"
-    ],
+    "dietTags": ["kosher", "dairy_free"],
     "goalType": "gain_muscle",
     "isActive": true,
     "createdAt": "2025-09-12T00:12:42.027504Z",
@@ -394,11 +344,7 @@
     "protein": 55,
     "fat": 24,
     "carbs": 51,
-    "dietTags": [
-      "vegetarian",
-      "halal",
-      "vegan"
-    ],
+    "dietTags": ["vegetarian", "halal", "vegan"],
     "goalType": "gain_muscle",
     "isActive": true,
     "createdAt": "2025-09-12T00:12:42.027504Z",
@@ -411,11 +357,7 @@
     "protein": 20,
     "fat": 17,
     "carbs": 109,
-    "dietTags": [
-      "gluten_free",
-      "dairy_free",
-      "vegetarian"
-    ],
+    "dietTags": ["gluten_free", "dairy_free", "vegetarian"],
     "goalType": "maintain",
     "isActive": true,
     "createdAt": "2025-09-12T00:12:42.027504Z",
@@ -428,9 +370,7 @@
     "protein": 30,
     "fat": 16,
     "carbs": 54,
-    "dietTags": [
-      "gluten_free"
-    ],
+    "dietTags": ["gluten_free"],
     "goalType": "lose_weight",
     "isActive": true,
     "createdAt": "2025-09-12T00:12:42.027504Z",
@@ -443,9 +383,7 @@
     "protein": 47,
     "fat": 26,
     "carbs": 51,
-    "dietTags": [
-      "nut_free"
-    ],
+    "dietTags": ["nut_free"],
     "goalType": "gain_muscle",
     "isActive": true,
     "createdAt": "2025-09-12T00:12:42.027504Z",

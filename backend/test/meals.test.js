@@ -16,29 +16,38 @@ describe("Meals API (/api/meals)", function () {
 
   it("POST /suggest returns suggestions when ingredients provided", function (done) {
     const payload = { ingredients: ["bread", "cheese"] };
-    request.post({ url: `${baseUrl}/api/meals/suggest`, json: payload }, function (err, res, body) {
-      if (err) return done(err);
-      expect(res.statusCode).to.equal(200);
-      expect(body).to.be.an("array");
-      done();
-    });
+    request.post(
+      { url: `${baseUrl}/api/meals/suggest`, json: payload },
+      function (err, res, body) {
+        if (err) return done(err);
+        expect(res.statusCode).to.equal(200);
+        expect(body).to.be.an("array");
+        done();
+      }
+    );
   });
 
   it("POST /suggest returns 400 when ingredients missing", function (done) {
-    request.post({ url: `${baseUrl}/api/meals/suggest`, json: {} }, function (err, res) {
-      if (err) return done(err);
-      expect(res.statusCode).to.equal(400);
-      done();
-    });
+    request.post(
+      { url: `${baseUrl}/api/meals/suggest`, json: {} },
+      function (err, res) {
+        if (err) return done(err);
+        expect(res.statusCode).to.equal(400);
+        done();
+      }
+    );
   });
 
   it("POST / adds a new meal object", function (done) {
     const meal = { name: "Test Meal", ingredients: ["x"], steps: "mix" };
-    request.post({ url: `${baseUrl}/api/meals`, json: meal }, function (err, res, body) {
-      if (err) return done(err);
-      expect(res.statusCode).to.equal(201);
-      expect(body).to.include({ name: "Test Meal" });
-      done();
-    });
+    request.post(
+      { url: `${baseUrl}/api/meals`, json: meal },
+      function (err, res, body) {
+        if (err) return done(err);
+        expect(res.statusCode).to.equal(201);
+        expect(body).to.include({ name: "Test Meal" });
+        done();
+      }
+    );
   });
 });

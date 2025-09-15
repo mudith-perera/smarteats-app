@@ -13,11 +13,17 @@ describe("User Profile endpoints (/api/users/*)", function () {
   });
 
   it("PUT /me/active-profile requires auth", function (done) {
-    request.put({ url: `${baseUrl}/api/users/me/active-profile`, json: { profileId: "dummy" } }, function (err, res) {
-      if (err) return done(err);
-      expect([401, 403]).to.include(res.statusCode);
-      done();
-    });
+    request.put(
+      {
+        url: `${baseUrl}/api/users/me/active-profile`,
+        json: { profileId: "dummy" },
+      },
+      function (err, res) {
+        if (err) return done(err);
+        expect([401, 403]).to.include(res.statusCode);
+        done();
+      }
+    );
   });
 
   it("GET /me/dashboard-info requires auth", function (done) {
@@ -29,10 +35,13 @@ describe("User Profile endpoints (/api/users/*)", function () {
   });
 
   it("DELETE /me/delete-profile/:id requires auth", function (done) {
-    request.delete(`${baseUrl}/api/users/me/delete-profile/123`, function (err, res) {
-      if (err) return done(err);
-      expect([401, 403]).to.include(res.statusCode);
-      done();
-    });
+    request.delete(
+      `${baseUrl}/api/users/me/delete-profile/123`,
+      function (err, res) {
+        if (err) return done(err);
+        expect([401, 403]).to.include(res.statusCode);
+        done();
+      }
+    );
   });
 });

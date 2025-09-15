@@ -14,4 +14,3 @@ router.get("/suggest", (req, res) => {
 });
 
 module.exports = router;
-
