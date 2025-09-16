@@ -20,12 +20,13 @@ After cloning the project
 3. Run server:
 
    ```bash
-   nodemon backend/server.js
+   npm run dev
    ```
 
 4. Add sample data by running
 
-   ```mongoimport --db smarteats --collection mealplans --file mealplans30.json --jsonArray
+   ```
+   mongoimport --db smarteats --collection mealplans --file mealplans30.json --jsonArray
 
    ```
 
