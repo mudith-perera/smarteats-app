@@ -37,6 +37,24 @@ async function seedAdminUser() {
 }
 
 dotenv.config();
+
+// ai config
+const OPENAI_ENV_KEY =
+  process.env.OPENAI_API_KEY ||
+  process.env.AI_OPENAI_API_KEY ||
+  process.env.AI_API_KEY ||
+  "";
+
+if (OPENAI_ENV_KEY && !process.env.OPENAI_API_KEY) {
+  process.env.OPENAI_API_KEY = OPENAI_ENV_KEY;
+}
+
+if (!process.env.OPENAI_API_KEY) {
+  console.warn(
+    "[server] OPENAI_API_KEY is not set. AI powered meal plan ranking will be disabled."
+  );
+}
+
 const app = express();
 
 // CORS - allow local dev origins and file:// (treated as 'null' origin)
