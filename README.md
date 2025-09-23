@@ -16,6 +16,7 @@ After cloning the project
    MONGO_URI=mongodb://localhost:27017/smarteats
    JWT_SECRET=your_jwt_secret
    PORT=5001
+   <🆕> OPENAI_API_KEY= <Your secret key - get it from https://auth.openai.com/log-in >
    ```
 3. Run server:
 
