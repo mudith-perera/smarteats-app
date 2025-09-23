@@ -377,6 +377,15 @@ function renderMealPlanCard(mp) {
   const f = mp.fat ?? "—";
   const c = mp.carbs ?? "—";
 
+  const rationale = mp.aiRationale
+    ? `<div class="ai-rationale" style="background:#f2f6ff;border-left:3px solid #3b82f6;padding:.6rem .8rem;margin:.8rem 0;border-radius:.35rem;">
+        <div style="font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:#2563eb;font-weight:600;margin-bottom:.3rem;">AI match insight</div>
+        <div style="font-size:.95rem;color:#1f2937;line-height:1.35;">${escapeHtml(
+          mp.aiRationale
+        )}</div>
+      </div>`
+    : "";
+
   return `
     <article class="card" data-mp-id="${mp._id}">
       <h3 style="margin:.2rem 0 .4rem 0;">${escapeHtml(
@@ -395,6 +404,7 @@ function renderMealPlanCard(mp) {
         diet
       )}</div>
       <div class="muted" style="font-size:.9rem;"><strong>Goal:</strong> ${goal}</div>
+      ${rationale}
       <div style="margin-top:.8rem;display:flex;gap:.5rem;">
         <button class="button" data-action="view-mp" data-id="${
           mp._id
