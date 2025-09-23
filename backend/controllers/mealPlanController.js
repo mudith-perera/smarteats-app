@@ -1,6 +1,9 @@
 const MealPlan = require("../models/MealPlan");
 const User = require("../models/User");
 const Profile = require("../models/Profile");
+const { rankMealPlans } = require("../services/aiMealPlanRanker");
+
+let rankMealPlansWithAI = rankMealPlans;
 
 // POST /api/mealplans (admin)
 exports.createMealPlan = async (req, res) => {
@@ -65,83 +68,6 @@ exports.listMealPlans = async (req, res) => {
   }
 };
 
-// GET /api/mealplans/suggested
-exports.suggestedMealPlans = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const user = await User.findById(userId).select("profile").lean();
-    let activeProfile = null;
-
-    if (user?.profile) {
-      const activeId =
-        typeof user.profile === "object" && user.profile._id
-          ? user.profile._id
-          : user.profile;
-      activeProfile = await Profile.findOne({
-        _id: activeId,
-        user: userId,
-      }).lean();
-    }
-
-    const dietaryPreferences = Array.isArray(activeProfile?.dietaryPreferences)
-      ? activeProfile.dietaryPreferences
-      : [];
-    const goal = activeProfile?.goal || null;
-
-    const hasSignals = dietaryPreferences.length > 0 || !!goal;
-
-    let items = [];
-    if (hasSignals) {
-      items = await MealPlan.aggregate([
-        { $match: { isActive: true } },
-        {
-          $addFields: {
-            dietMatches: {
-              $size: {
-                $setIntersection: ["$dietTags", dietaryPreferences],
-              },
-            },
-            goalMatch: goal
-              ? { $cond: [{ $eq: ["$goalType", goal] }, 1, 0] }
-              : 0,
-          },
-        },
-        {
-          $addFields: {
-            score: {
-              $add: [
-                { $multiply: ["$dietMatches", 2] },
-                { $multiply: ["$goalMatch", 3] },
-              ],
-            },
-          },
-        },
-        { $sort: { score: -1, createdAt: -1 } },
-        { $limit: 12 },
-      ]);
-
-      // If everything scored 0, fall back to recent actives
-      const hasPositive = items.some((p) => (p.score ?? 0) > 0);
-      if (!hasPositive) {
-        items = await MealPlan.find({ isActive: true })
-          .sort({ createdAt: -1 })
-          .limit(12)
-          .lean();
-      }
-    } else {
-      // No profile signals → return recent
-      items = await MealPlan.find({ isActive: true })
-        .sort({ createdAt: -1 })
-        .limit(12)
-        .lean();
-    }
-
-    return res.json({ items, profileSignals: { dietaryPreferences, goal } });
-  } catch (err) {
-    return res.status(500).json({ message: err.message });
-  }
-};
-
 // GET /api/mealplans/:id
 exports.getMealPlan = async (req, res) => {
   try {
@@ -177,7 +103,95 @@ exports.deleteMealPlan = async (req, res) => {
   }
 };
 
-// Suggested for the logged-in user (scored matching)
+const toStringArray = (values) =>
+  Array.isArray(values) ? values.map((value) => String(value)) : [];
+
+const cleanPlan = (plan, rationale = null) => {
+  if (!plan) return null;
+  const {
+    score,
+    goalMatch,
+    dietMatches,
+    dietOverlap,
+    ...rest
+  } = plan;
+
+  return { ...rest, aiRationale: rationale ?? null };
+};
+
+async function fetchFallbackPlans({ dietaryPreferences, goal, limit }) {
+  const baseMatch = { isActive: true };
+  const limitNum = limit;
+
+  const sanitize = (items = []) =>
+    items
+      .map((plan) => cleanPlan(plan))
+      .filter(Boolean)
+      .slice(0, limitNum);
+
+  if (dietaryPreferences.length) {
+    const hardMatch = await MealPlan.aggregate([
+      { $match: { ...baseMatch, dietTags: { $all: dietaryPreferences } } },
+      {
+        $addFields: {
+          goalMatch: goal
+            ? { $cond: [{ $eq: ["$goalType", goal] }, 1, 0] }
+            : 0,
+        },
+      },
+      { $sort: { goalMatch: -1, createdAt: -1 } },
+      { $limit: limitNum },
+    ]);
+
+    if (hardMatch.length) {
+      return sanitize(hardMatch);
+    }
+
+    const softMatch = await MealPlan.aggregate([
+      {
+        $match: {
+          ...baseMatch,
+          dietTags: { $in: dietaryPreferences },
+        },
+      },
+      {
+        $addFields: {
+          dietOverlap: {
+            $size: { $setIntersection: ["$dietTags", dietaryPreferences] },
+          },
+          goalMatch: goal
+            ? { $cond: [{ $eq: ["$goalType", goal] }, 1, 0] }
+            : 0,
+        },
+      },
+      {
+        $addFields: {
+          score: {
+            $add: [
+              { $multiply: ["$dietOverlap", 2] },
+              { $multiply: ["$goalMatch", 3] },
+            ],
+          },
+        },
+      },
+      { $sort: { score: -1, createdAt: -1 } },
+      { $limit: limitNum },
+    ]);
+
+    if (softMatch.length) {
+      return sanitize(softMatch);
+    }
+  }
+
+  const recent = await MealPlan.find(baseMatch)
+    .sort({ createdAt: -1 })
+    .limit(limitNum)
+    .lean();
+
+  return sanitize(recent);
+}
+
+// Suggested for the logged-in user (with AI re-ranking)
 exports.suggestedMealPlans = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -194,84 +208,126 @@ exports.suggestedMealPlans = async (req, res) => {
         user: userId,
       }).lean();
     }
+
     if (!activeProfile) {
       activeProfile = await Profile.findOne({ user: userId, isActive: true })
         .sort({ updatedAt: -1, createdAt: -1 })
         .lean();
     }
 
-    const dietaryPreferences = Array.isArray(activeProfile?.dietaryPreferences)
-      ? activeProfile.dietaryPreferences.map(String) || []
-      : [];
+    const dietaryPreferences = toStringArray(activeProfile?.dietaryPreferences);
     const goal = activeProfile?.goal || null;
+    const profileId = activeProfile?._id || null;
 
-    const baseMatch = { isActive: true };
+    const suggestionLimit =
+      parseInt(process.env.SUGGESTED_MEALPLAN_LIMIT || "", 10) || 12;
+    const candidateLimit =
+      parseInt(process.env.AI_RANKER_CANDIDATE_LIMIT || "", 10) || 40;
 
-    let hardMatch = { ...baseMatch };
-    if (dietaryPreferences.length > 0) {
-      hardMatch.dietTags = { $all: dietaryPreferences };
-    }
-
-    let items = await MealPlan.aggregate([
-      { $match: hardMatch },
-      {
-        $addFields: {
-          goalMatch: goal ? { $cond: [{ $eq: ["$goalType", goal] }, 1, 0] } : 0,
-        },
-      },
-      { $sort: { goalMatch: -1, createdAt: -1 } },
-      { $limit: 12 },
-    ]);
-
-    if (items.length === 0 && dietaryPreferences.length > 0) {
-      items = await MealPlan.aggregate([
-        {
-          $match: {
-            ...baseMatch,
-            dietTags: { $in: dietaryPreferences },
-          },
-        },
-        {
-          $addFields: {
-            dietOverlap: {
-              $size: { $setIntersection: ["$dietTags", dietaryPreferences] },
-            },
-            goalMatch: goal
-              ? { $cond: [{ $eq: ["$goalType", goal] }, 1, 0] }
-              : 0,
-          },
-        },
-        {
-          $addFields: {
-            score: {
-              $add: [
-                { $multiply: ["$dietOverlap", 2] },
-                { $multiply: ["$goalMatch", 3] },
-              ],
-            },
-          },
-        },
-        { $sort: { score: -1, createdAt: -1 } },
-        { $limit: 12 },
-      ]);
-    }
-
-    if (items.length === 0) {
-      items = await MealPlan.find(baseMatch)
-        .sort({ createdAt: -1 })
-        .limit(12)
+    let aiCandidates = [];
+    try {
+      aiCandidates = await MealPlan.find({ isActive: true })
+        .sort({ updatedAt: -1, createdAt: -1 })
+        .limit(candidateLimit)
         .lean();
+    } catch (err) {
+      if (process.env.NODE_ENV !== "test") {
+        console.warn(
+          `[mealPlanController] Failed to load AI candidates: ${err.message}`
+        );
+      }
     }
+
+    let aiResult = null;
+    let aiError = null;
+
+    if (aiCandidates.length && typeof rankMealPlansWithAI === "function") {
+      try {
+        const aiResponse = await rankMealPlansWithAI({
+          profile: activeProfile,
+          candidates: aiCandidates,
+        });
+
+        if (Array.isArray(aiResponse) && aiResponse.length) {
+          const candidateMap = new Map(
+            aiCandidates.map((plan) => [String(plan._id), plan])
+          );
+
+          const seen = new Set();
+          const ordered = [];
+          for (const entry of aiResponse) {
+            if (!entry) continue;
+            const id = String(
+              entry.id || entry.planId || entry.mealPlanId || entry._id || ""
+            );
+            if (!id || seen.has(id)) continue;
+            const matched = candidateMap.get(id);
+            if (!matched) continue;
+            seen.add(id);
+            ordered.push(cleanPlan(matched, entry.rationale || null));
+            if (ordered.length >= suggestionLimit) break;
+          }
+
+          if (ordered.length) {
+            aiResult = ordered;
+          } else {
+            aiError = new Error(
+              "AI response did not reference available meal plans."
+            );
+          }
+        } else {
+          aiError = new Error("AI response was empty.");
+        }
+      } catch (err) {
+        aiError = err;
+      }
+    } else if (!aiCandidates.length && typeof rankMealPlansWithAI === "function") {
+      aiError = new Error("No candidate meal plans available for AI ranking.");
+    }
+
+    let items = null;
+    let aiUsed = false;
+
+    if (aiResult) {
+      items = aiResult;
+      aiUsed = true;
+    } else {
+      if (aiError && process.env.NODE_ENV !== "test") {
+        console.warn(
+          `[mealPlanController] Falling back to preference-based ordering: ${aiError.message}`
+        );
+      }
+
+      items = await fetchFallbackPlans({
+        dietaryPreferences,
+        goal,
+        limit: suggestionLimit,
+      });
+    }
+
+    items = (items || []).slice(0, suggestionLimit);
 
     return res.json({
       items,
       profileSignals: {
         dietaryPreferences,
         goal,
-        profileId: activeProfile?._id || null,
+        profileId,
+      },
+      ai: {
+        used: aiUsed,
+        error: aiError ? aiError.message : null,
       },
     });
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
+};
+
+exports.__setRankMealPlanService = (fn) => {
+  rankMealPlansWithAI = fn;
+};
+
+exports.__resetRankMealPlanService = () => {
+  rankMealPlansWithAI = rankMealPlans;
 };
