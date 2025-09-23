@@ -16,7 +16,8 @@
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.0",
-    "mongoose": "^7.0.0"
+    "mongoose": "^7.0.0",
+    "openai": "^4.68.4"
   },
   "devDependencies": {
     "chai": "^6.0.1",
