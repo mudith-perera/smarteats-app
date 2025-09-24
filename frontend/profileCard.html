@@ -74,6 +74,8 @@
 
                 const title = p.name || `Profile ${idx + 1}`;
                 const prefs = Array.isArray(p.dietaryPreferences) ? p.dietaryPreferences : [];
+                const cuisine = p.favoriteCuisine ? `<p class="pc-sub">Favorite Cuisine: <strong>${p.favoriteCuisine}</strong></p>` : '';
+
 
                 card.innerHTML = `
           <div class="pc-top">
@@ -89,6 +91,7 @@
           <div class="pc-tags">
             ${prefs.map(tag => `<span class="pc-tag">${String(tag).replace('_', '-')}</span>`).join('')}
           </div>
+          ${cuisine}
         `;
 
                 card.addEventListener('click', () => selectProfile(p._id));
