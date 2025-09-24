@@ -249,8 +249,18 @@
                     <option value="maintain" selected>Maintain</option>
                     <option value="gain_muscle">Gain muscle</option>
                   </select>
+                  <small class="help">Choose what you want SmartEats to focus on: weight loss, maintain, or muscle gain.</small>
                 </div>
               </div>
+
+              <div class="row">
+           <div>
+             <label for="favoriteCuisine">Favorite Cuisine</label>
+             <input type="text" id="favoriteCuisine" name="favoriteCuisine" placeholder="e.g., Italian, Japanese" />
+             <small class="help">Optional: helps personalize meal suggestions.</small>
+           </div>
+          </div>
+
 
               <!-- Dietary Preferences -->
               <fieldset class="row">
@@ -337,6 +347,15 @@
                   </select>
                 </div>
               </div>
+
+              <div class="row">
+               <div>
+                 <label for="updateFavoriteCuisine">Favorite Cuisine</label>
+                 <input type="text" id="updateFavoriteCuisine" name="favoriteCuisine" placeholder="e.g., Italian, Japanese" />
+                 <small class="help">e.g., Italian, Japanese, Middle Eastern</small>
+                 </div>
+               </div>
+
 
               <fieldset class="row">
                 <legend>Dietary Preferences</legend>
@@ -677,6 +696,28 @@
         const weight = $('#updateWeight').val();
         const height = $('#updateHeight').val();
         const goal = $('#updateGoal').val();
+        const favoriteCuisine = $('#updateFavoriteCuisine').val();
+
+        if (weight <= 0) {
+        Swal.fire({
+        icon: 'warning',
+        title: 'Invalid weight',
+        text: 'Weight must be greater than 0.'
+       });
+   return; // stop submission
+}
+
+
+         if (height < 100 && unitSystem === 'metric') {
+        Swal.fire({
+        icon: 'warning',
+        title: 'Invalid height',
+        text: 'Height must be at least 100 cm if using metric.'
+      });
+  return; // stop submission
+}
+
+
 
         const dietaryPreferences = [
           ['#upd-diet-vegetarian', 'vegetarian'],
@@ -696,6 +737,7 @@
         if (weight !== '' && weight != null) payload.weight = Number(weight);
         if (height !== '' && height != null) payload.height = Number(height);
         if (goal) payload.goal = goal;
+        if (favoriteCuisine) payload.favoriteCuisine = favoriteCuisine; 
         payload.dietaryPreferences = dietaryPreferences; // send array (can be empty)
 
         if (Object.keys(payload).length === 1 && Array.isArray(payload.dietaryPreferences) && payload.dietaryPreferences.length === 0) {
