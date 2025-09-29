@@ -8,7 +8,8 @@
   "main": "backend/server.js",
   "scripts": {
     "start": "node backend/server.js",
-    "dev": "nodemon backend/server.js"
+    "dev": "nodemon backend/server.js",
+    "test": "mocha backend/test --timeout 10000"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
