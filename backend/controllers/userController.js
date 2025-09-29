@@ -68,7 +68,7 @@ exports.loginUser = async (req, res) => {
 exports.createProfile = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { name, age, weight, height, dietaryPreferences, goal, unitSystem } =
+    const { name, age, weight, height, dietaryPreferences, goal, unitSystem, favoriteCuisine } =
       req.body;
 
     const profile = await Profile.create({
@@ -80,6 +80,7 @@ exports.createProfile = async (req, res) => {
       dietaryPreferences,
       goal,
       unitSystem,
+      favoriteCuisine,
     });
 
     const user = await User.findByIdAndUpdate(
