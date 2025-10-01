@@ -1,5 +1,37 @@
 const API_URL = "/api/users";
 
+// Google OAuth Login
+document.getElementById('googleLoginBtn')?.addEventListener('click', () => {
+  const w = window.open('/api/oauth/google', 'oauth', 'width=480,height=640');
+  // Listen once for the callback message
+  window.addEventListener('message', (e) => {
+    if (e.origin !== location.origin) return; // basic origin check
+    console.log('OAuth response', e.data);
+    const { token, message, profile } = e.data || {};
+    if (!token) return;
+
+    localStorage.setItem('token', token);
+
+    let role = null;
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      role = payload.role;
+    } catch (e) {
+      console.warn("Failed to decode token payload", e);
+    }
+
+    swal.fire({
+      icon: 'success',
+      title: 'Login successful',
+      text: message || 'Welcome back!',
+      confirmButtonColor: '#3085d6',
+    }).then(() => {
+      if (role === 'admin') location.href = 'admin.html';
+      else location.href = profile ? 'dashboard.html' : 'profileForm.html';
+    });
+  }, { once: true });
+});
+
 // Register
 document
   .getElementById("registerForm")
@@ -186,9 +218,8 @@ function loadDashboard() {
       // Greeting
       const name = (user.firstName || "") + " " + (user.lastName || "");
       const fallback = user.username || "there";
-      document.getElementById("greeting-title").textContent = `Welcome, ${
-        name.trim() || fallback
-      }!`;
+      document.getElementById("greeting-title").textContent = `Welcome, ${name.trim() || fallback
+        }!`;
       document.getElementById("greeting-subtitle").textContent =
         "Here’s your current health overview.";
 
@@ -219,7 +250,7 @@ function loadDashboard() {
         profile.height != null ? profile.height : "–";
       const diet =
         Array.isArray(profile.dietaryPreferences) &&
-        profile.dietaryPreferences.length
+          profile.dietaryPreferences.length
           ? profile.dietaryPreferences.join(", ")
           : "–";
       document.getElementById("diet-value").textContent = diet;
@@ -299,7 +330,7 @@ document.getElementById("dashboardBtn")?.addEventListener("click", (e) => {
       e.preventDefault();
       location.href = "admin.html";
     }
-  } catch {}
+  } catch { }
 });
 
 // --- Admin get users ---
@@ -381,19 +412,19 @@ function renderMealPlanCard(mp) {
     ? `<div class="ai-rationale" style="background:#f2f6ff;border-left:3px solid #3b82f6;padding:.6rem .8rem;margin:.8rem 0;border-radius:.35rem;">
         <div style="font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:#2563eb;font-weight:600;margin-bottom:.3rem;">AI match insight</div>
         <div style="font-size:.95rem;color:#1f2937;line-height:1.35;">${escapeHtml(
-          mp.aiRationale
-        )}</div>
+      mp.aiRationale
+    )}</div>
       </div>`
     : "";
 
   return `
     <article class="card" data-mp-id="${mp._id}">
       <h3 style="margin:.2rem 0 .4rem 0;">${escapeHtml(
-        mp.title || "Untitled"
-      )}</h3>
+    mp.title || "Untitled"
+  )}</h3>
       <p class="muted" style="margin:0 0 .6rem 0;">${escapeHtml(
-        mp.description || ""
-      )}</p>
+    mp.description || ""
+  )}</p>
       <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.4rem;margin:.4rem 0;">
         <div><span class="muted">Calories:</span> ${kcal}</div>
         <div><span class="muted">Protein:</span> ${p} g</div>
@@ -401,14 +432,13 @@ function renderMealPlanCard(mp) {
         <div><span class="muted">Carbs:</span> ${c} g</div>
       </div>
       <div class="muted" style="font-size:.9rem;margin-top:.2rem;"><strong>Diet:</strong> ${escapeHtml(
-        diet
-      )}</div>
+    diet
+  )}</div>
       <div class="muted" style="font-size:.9rem;"><strong>Goal:</strong> ${goal}</div>
       ${rationale}
       <div style="margin-top:.8rem;display:flex;gap:.5rem;">
-        <button class="button" data-action="view-mp" data-id="${
-          mp._id
-        }">View details</button>
+        <button class="button" data-action="view-mp" data-id="${mp._id
+    }">View details</button>
       </div>
     </article>
   `;
@@ -438,8 +468,8 @@ function showMealPlanDetails(mp) {
   const html = `
     <div style="text-align:left">
       <p class="muted" style="margin:0 0 .6rem 0;">${escapeHtml(
-        mp.description || ""
-      )}</p>
+    mp.description || ""
+  )}</p>
       <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.4rem;margin:.4rem 0;">
         <div><strong>Calories:</strong> ${mp.calories ?? "—"}</div>
         <div><strong>Protein:</strong> ${mp.protein ?? "—"} g</div>
@@ -447,8 +477,8 @@ function showMealPlanDetails(mp) {
         <div><strong>Carbs:</strong> ${mp.carbs ?? "—"} g</div>
       </div>
       <p style="margin:.4rem 0 0 0;"><strong>Diet:</strong> ${escapeHtml(
-        diet
-      )}</p>
+    diet
+  )}</p>
       <p style="margin:.2rem 0 0 0;"><strong>Goal:</strong> ${goal}</p>
     </div>
   `;
@@ -466,12 +496,12 @@ function escapeHtml(str) {
   return String(str ?? "").replace(
     /[&<>"']/g,
     (s) =>
-      ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;",
-      }[s])
+    ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    }[s])
   );
 }
