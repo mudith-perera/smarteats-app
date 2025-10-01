@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const path = require("path");
 const cors = require("cors");
+const oAuthRoutes = require("./routes/oAuthRoutes");
 const userRoutes = require("./routes/userRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const mealPlanRoutes = require("./routes/mealPlanRoutes");
@@ -79,6 +80,7 @@ app.use(
 app.use(express.json());
 
 // API Routes
+app.use("/api/oauth", oAuthRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/mealplans", mealPlanRoutes);

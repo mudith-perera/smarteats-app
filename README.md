@@ -15,8 +15,13 @@ After cloning the project
    ```env
    MONGO_URI=mongodb://localhost:27017/smarteats
    JWT_SECRET=your_jwt_secret
-   PORT=5001
+   PORT=5001 (8000 for OAuth Functionality)
    <🆕> OPENAI_API_KEY= <Your secret key - get it from https://auth.openai.com/log-in >
+   <🆕> GOOGLE_CLIENT_ID= <Your Google Client ID >
+   <🆕> GOOGLE_CLIENT_SECRET= <Your Google Client Secret >
+   <🆕> GOOGLE_OAUTH_URL=https://accounts.google.com/o/oauth2/v2/auth
+   <🆕> GOOGLE_ACCESS_TOKEN_URL=https://oauth2.googleapis.com/token
+   <🆕> GOOGLE_TOKEN_INFO_URL=https://oauth2.googleapis.com/tokeninfo
    ```
 3. Run server:
 
@@ -33,4 +38,4 @@ After cloning the project
 
 ## Frontend
 
-Open `http://localhost:5001/` in a browser.
+Open in a browser from console.
